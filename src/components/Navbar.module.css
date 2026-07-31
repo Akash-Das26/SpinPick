@@ -7,17 +7,17 @@
   padding: 12px 0;
 }
 
-.navTransparent {
+.nav--transparent {
   background: var(--bg-glass-strong);
   border-bottom: 1px solid var(--border-subtle);
 }
 
-.navScrolled {
+.nav--scrolled {
   background: var(--bg-glass-strong);
   border-bottom: 1px solid var(--border-medium);
 }
 
-.brandIcon {
+.nav__brand-icon {
   width: 36px;
   height: 36px;
   border-radius: 10px;
@@ -25,24 +25,24 @@
   box-shadow: var(--shadow-glow);
 }
 
-.logoSpinIcon {
+.nav__logo-spin-icon {
   animation: logoSpin 12s linear infinite;
 }
 
-.brandText {
+.nav__brand-text {
   display: none;
 }
 
-.brandName {
+.nav__brand-name {
   letter-spacing: -0.03em;
 }
 
-.brandTagline {
+.nav__brand-tagline {
   font-size: 0.6rem;
   margin-top: -0.2rem;
 }
 
-.navbarTabsDesktop {
+.nav__tabs-desktop {
   display: flex;
   gap: 4px;
   background: var(--bg-surface);
@@ -54,31 +54,31 @@
   min-width: 0;
 }
 
-.themeToggle {
+.nav__theme-toggle {
   flex-shrink: 0;
 }
 
-.compareLink {
+.nav__compare-link {
   padding: 8px 13px;
   justify-content: center;
 }
 
-.compareLink:hover {
+.nav__compare-link:hover {
   border-color: var(--border-glow);
   color: var(--accent-lime);
 }
 
-.mobileToggle {
+.nav__mobile-toggle {
   display: none;
 }
 
-.navInner {
+.nav__inner {
   max-width: 1240px;
   margin: 0 auto;
   padding: 0 24px;
 }
 
-.mobileDrawer {
+.nav__drawer {
   position: absolute;
   top: 100%;
   left: 0;
@@ -94,13 +94,13 @@
   padding: 16px;
 }
 
-.mobileMenuButton {
+.nav__menu-button {
   justify-content: flex-start;
   font-size: 1rem;
   min-height: 52px;
 }
 
-.mobileCompareLink {
+.nav__compare-link-mobile {
   justify-content: flex-start;
   display: inline-flex;
   align-items: center;
@@ -114,7 +114,7 @@
   font-weight: 700;
 }
 
-.icon24 {
+.nav__icon-24 {
   width: 24px;
 }
 
@@ -139,42 +139,42 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .logoSpinIcon {
+  .nav__logo-spin-icon {
     animation: none !important;
   }
 }
 
 @media (max-width: 768px) {
-  .navbarTabsDesktop {
+  .nav__tabs-desktop {
     display: none;
   }
 
-  .mobileToggle {
+  .nav__mobile-toggle {
     display: grid;
     place-items: center;
   }
 
-  .brandText {
+  .nav__brand-text {
     display: none;
   }
 
-  .surpriseText {
+  .nav__surprise-text {
     display: none;
   }
 
-  .navInner {
+  .nav__inner {
     padding: 0 16px;
   }
 }
 
 @media (max-width: 480px) {
-  .navInner {
+  .nav__inner {
     padding: 0 12px;
   }
 }
 
 @media (min-width: 769px) {
-  .mobileDrawer {
+  .nav__drawer {
     display: none;
   }
 }

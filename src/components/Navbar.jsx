@@ -29,12 +29,12 @@ export function Navbar({ activeTab, setActiveTab, openSettings, onSurprise, them
 
   const tabs = TABS;
 
-  return (
+return (
     <nav
       className={`${styles.nav} ${isScrolled ? styles.navScrolled : styles.navTransparent}`}
       aria-label="Main navigation"
     >
-      <div className="container flex items-center justify-between gap-16 flex-wrap">
+      <div className={`${styles.navInner} flex items-center justify-between gap-16 flex-wrap`}>
         {/* Brand Logo — acts as link to Studio */}
         <div
           role="link"
@@ -45,16 +45,16 @@ export function Navbar({ activeTab, setActiveTab, openSettings, onSurprise, them
           className="flex items-center gap-10 pointer shrink-0"
         >
           <div
-            className={`grid-center ${styles.brandIcon}`}
+            className={`grid-center ${styles.navBrandIcon}`}
             aria-hidden="true"
           >
-            <Disc size={20} color="#07070d" className={styles.logoSpinIcon} />
+            <Disc size={20} color="#07070d" className={styles.navLogoSpinIcon} />
           </div>
-          <div className={styles.brandText}>
-            <span className={`font-display font-extrabold text-lg text-primary ${styles.brandName}`}>
+          <div className={styles.navBrandText}>
+            <span className={`font-display font-extrabold text-lg text-primary ${styles.navBrandName}`}>
               Spin<span className="text-lime">Pick</span>
             </span>
-            <span className={`mono block text-muted tracking-wider ${styles.brandTagline}`}>
+            <span className={`mono block text-muted tracking-wider ${styles.navBrandTagline}`}>
               DECISION STUDIO
             </span>
           </div>
@@ -64,7 +64,7 @@ export function Navbar({ activeTab, setActiveTab, openSettings, onSurprise, them
         <div
           role="tablist"
           aria-label="App sections"
-          className={styles.navbarTabsDesktop}
+          className={styles.navTabsDesktop}
         >
           {tabs.map(({ id, icon: Icon, label }) => (
             <button
@@ -83,7 +83,7 @@ export function Navbar({ activeTab, setActiveTab, openSettings, onSurprise, them
         {/* Right-side Action Buttons */}
         <div className="flex items-center gap-8 shrink-0">
           <button
-            className={`btn btn-secondary btn-sm px-10 py-8 ${styles.themeToggle}`}
+            className={`btn btn-secondary btn-sm px-10 py-8 ${styles.navThemeToggle}`}
             onClick={toggleTheme}
             aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
@@ -113,7 +113,7 @@ export function Navbar({ activeTab, setActiveTab, openSettings, onSurprise, them
 
           <Link
             to="/compare"
-            className={`${styles.compareLink} inline-flex items-center gap-6 rounded-full text-secondary text-sm font-bold transition-fast no-underline`}
+            className={`${styles.navCompareLink} inline-flex items-center gap-6 rounded-full text-secondary text-sm font-bold transition-fast no-underline`}
             aria-label="See how SpinPick compares to alternatives"
           >
             <BarChart2 size={13} aria-hidden="true" />
@@ -131,7 +131,7 @@ export function Navbar({ activeTab, setActiveTab, openSettings, onSurprise, them
 
           {/* Mobile menu toggle */}
           <button
-            className={`btn btn-ghost btn-sm ${styles.mobileToggle} px-10 py-8`}
+            className={`btn btn-ghost btn-sm ${styles.navMobileToggle} px-10 py-8`}
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={isMobileMenuOpen}
@@ -145,7 +145,7 @@ export function Navbar({ activeTab, setActiveTab, openSettings, onSurprise, them
       {isMobileMenuOpen && (
         <div
           ref={mobileMenuRef}
-          className={styles.mobileDrawer}
+          className={styles.navDrawer}
           role="dialog"
           aria-modal="true"
           aria-label="Navigation menu"
@@ -154,24 +154,23 @@ export function Navbar({ activeTab, setActiveTab, openSettings, onSurprise, them
             <button
               key={id}
               role="menuitem"
-              className={`btn btn-sm ${activeTab === id ? 'btn-primary' : 'btn-secondary'} ${styles.mobileMenuButton}`}
+              className={`btn btn-sm ${activeTab === id ? 'btn-primary' : 'btn-secondary'} ${styles.navMenuButton}`}
               onClick={() => { setActiveTab(id); setIsMobileMenuOpen(false); }}
             >
-              <Icon size={18} aria-hidden="true" className={`text-center ${styles.icon24}`} />
+              <Icon size={18} aria-hidden="true" className={`text-center ${styles.navIcon24}`} />
               {label}
             </button>
           ))}
           <Link
             to="/compare"
             onClick={() => setIsMobileMenuOpen(false)}
-            className={styles.mobileCompareLink}
+            className={styles.navCompareLinkMobile}
           >
-            <BarChart2 size={18} aria-hidden="true" className={styles.icon24} />
+            <BarChart2 size={18} aria-hidden="true" className={styles.navIcon24} />
             Compare Alternatives
           </Link>
         </div>
       )}
-
     </nav>
   );
 }
