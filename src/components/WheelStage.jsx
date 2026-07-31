@@ -154,10 +154,10 @@ export function WheelStage({
   return (
     <div className={`${styles.wheelStage} glass-panel wheel-stage`}>
       {/* Stage Header */}
-      <div className={`${styles.wheelStage__header} wheel-stage__header`}>
+      <div className={styles.wheelStage__header}>
         <div>
-          <span className="mono wheel-stage__eyebrow wheel-stage__eyebrow">LIVE PHYSICS CANVAS</span>
-          <h3 className="wheel-stage__title" title={currentPrompt || ''}>
+          <span className={`mono ${styles.wheelStage__eyebrow}`}>LIVE PHYSICS CANVAS</span>
+          <h3 className={styles.wheelStage__title} title={currentPrompt || ''}>
             {currentPrompt ? `"${currentPrompt.length > 40 ? currentPrompt.slice(0, 40) + '…' : currentPrompt}"` : 'Interactive Decision Wheel'}
           </h3>
         </div>
@@ -219,17 +219,17 @@ export function WheelStage({
       </div>
 
       {/* Wheel Container */}
-      <div className="wheel-stage__canvas wheel-stage__canvas">
-        {/* Glowing Top Pointer */}
-        <div ref={pointerElRef} className={`${styles.wheelPointer} wheel-pointer ${lastSliceIndexRef.current !== -1 ? styles.pointerBounceClass : ''}`} aria-hidden="true">
-          <div className="wheel-pointer__triangle" />
-          <div className="wheel-pointer__dot" />
+      <div className={styles.wheelStage__canvas}>
+{/* Glowing Top Pointer */}
+        <div ref={pointerElRef} className={`${styles.wheelStage__pointer} ${lastSliceIndexRef.current !== -1 ? styles.wheelStage__pointerBounceClass : ''}`} aria-hidden="true">
+          <div className="wheel-stage__pointer-triangle" />
+          <div className="wheel-stage__pointer-dot" />
         </div>
 
         {/* SVG Wheel */}
-        <div ref={wheelElRef} className={`${styles.wheelDisc} wheel-disc`}>
+        <div ref={wheelElRef} className={styles.wheelStage__disc}>
           <svg viewBox="-100 -100 200 200" aria-label="Decision spin wheel" role="img"
-            className={`${styles.wheelSvg} wheel-svg`}>
+            className={styles.wheelStage__svg}>
             <title>Decision wheel with {slices.length} options</title>
             <desc>
               {slices.map(s => `${s.label} (${Math.round(s.sliceAngle)}°)`).join(', ')}
@@ -285,11 +285,11 @@ export function WheelStage({
         </div>
 
         {/* Center SPIN Hub */}
-        <div className="wheel-hub" aria-hidden="true">
+        <div className={styles.wheelStage__hub} aria-hidden="true">
           <button
             onClick={startSpin}
             disabled={isSpinning || options.length === 0}
-            className={`${styles.wheelHub__btn} wheel-hub__btn ${isSpinning ? styles.wheelHub__btnSpinning : ''}`}
+            className={`${styles.wheelStage__hubBtn} ${isSpinning ? styles.wheelStage__hubBtnSpinning : ''}`}
             aria-label={isSpinning ? 'Wheel is spinning' : 'Spin the wheel'}
           >
             {isSpinning ? 'SPIN...' : 'SPIN'}
@@ -298,8 +298,8 @@ export function WheelStage({
       </div>
 
       {/* Footer Controls */}
-      <div className="wheel-stage__footer wheel-stage__footer">
-        <span className="mono text-sm text-muted wheel-stage__status">
+      <div className={styles.wheelStage__footer}>
+        <span className={`mono text-sm text-muted ${styles.wheelStage__status}`}>
           {isSpinning ? '⚡ Decelerating physics...' : 'Ready to spin'}
         </span>
         <button className="btn btn-secondary btn-sm" onClick={startSpin} disabled={isSpinning}
