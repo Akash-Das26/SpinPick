@@ -1,0 +1,53 @@
+.nav {
+  background: rgba(7, 7, 13, 0.95);
+  padding: 12px 0;
+}
+
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.logoBubble {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--accent-gradient);
+}
+
+.brand {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.2rem;
+  color: var(--text-primary);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.actionLink {
+  border-radius: 9999px;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.compareLink {
+  padding: 7px 14px;
+  font-size: 0.85rem;
+  background: rgba(216, 255, 91, 0.1);
+  color: var(--accent-lime);
+}
+
+.tryLink {
+  padding: 8px 18px;
+  font-size: 0.85rem;
+  background: var(--accent-lime);
+  color: var(--text-inverse);
+}

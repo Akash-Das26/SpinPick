@@ -1,0 +1,55 @@
+.root {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--accent-lime);
+  color: var(--text-inverse);
+  padding: 0.75rem 1rem;
+  border-radius: 9999px;
+  font-weight: 800;
+  font-size: 0.75rem;
+}
+
+.winnerTitle {
+  font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+  letter-spacing: -0.03em;
+}
+
+.winnerDescription {
+  margin-top: 1.5rem;
+  font-size: 1rem;
+}
+
+.reasoningBox {
+  border-left: 4px solid var(--accent-lime);
+  padding: 1rem 1.25rem;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  background: var(--bg-surface-2);
+  margin-bottom: 1.25rem;
+}
+
+.actionStep {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  background: var(--bg-surface-2);
+  padding: 0.75rem 0.875rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+}
+
+.warningBox {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: var(--radius-sm);
+  margin-bottom: 1.5rem;
+  padding: 0.75rem 0.875rem;
+  background: rgba(255, 184, 108, 0.1);
+  border: 1px solid rgba(255, 184, 108, 0.3);
+  font-size: 0.8rem;
+}

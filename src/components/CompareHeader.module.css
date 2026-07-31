@@ -1,0 +1,32 @@
+.nav {
+  background: rgba(7, 7, 13, 0.95);
+  padding: 12px 0;
+}
+
+.logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--accent-gradient);
+}
+
+.title {
+  font-size: 1.2rem;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.compareLink {
+  padding: 7px 14px;
+  font-size: 0.85rem;
+  background: rgba(216,255,91,0.1);
+}
+
+.tryLink {
+  padding: 8px 18px;
+  font-size: 0.85rem;
+}

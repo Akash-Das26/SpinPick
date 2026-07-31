@@ -1,0 +1,21 @@
+# Keep the Docker build context tiny — the image only needs server/proxy.mjs.
+node_modules
+dist
+coverage
+.git
+.github
+.gitignore
+tests
+public
+src
+index.html
+package.json
+package-lock.json
+vite.config.js
+README.md
+CODE_REVIEW.md
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store

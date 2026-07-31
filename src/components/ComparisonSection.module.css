@@ -1,0 +1,82 @@
+.sectionHeading {
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.headingLabel {
+  display: inline-block;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+}
+
+.headingTitle {
+  margin-top: 1rem;
+  font-size: 2.4rem;
+}
+
+.headingText {
+  margin-top: 2rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 1rem;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.comparisonTable {
+  width: 100%;
+  text-align: left;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+.tableHeadRow {
+  border-bottom: 1px solid var(--border-medium);
+}
+
+.headerCell {
+  padding: 16px;
+  font-size: 0.9rem;
+}
+
+.headerHighlight {
+  background: rgba(216, 255, 91, 0.05);
+  border-radius: 8px 8px 0 0;
+}
+
+.bodyRow {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.bodyRow:last-child {
+  border-bottom: none;
+}
+
+.highlightRow {
+  background: rgba(216, 255, 91, 0.02);
+}
+
+.featureCell {
+  padding: 18px 16px;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.spinPickCell,
+.otherCell {
+  padding: 18px 16px;
+}
+
+.spinPickCell {
+  color: var(--accent-lime);
+  background: rgba(216, 255, 91, 0.05);
+}
+
+.otherCell {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}

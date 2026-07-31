@@ -1,0 +1,72 @@
+.root {
+  animation: fadeIn 0.3s ease-out;
+  max-width: 840px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.75rem;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 3rem;
+}
+
+.emptyIcon {
+  opacity: 0.5;
+}
+
+.emptyTitle {
+  margin-top: 0;
+  font-size: 1.2rem;
+}
+
+.historyBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(216, 255, 91, 0.1);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+}
+
+.cardTitle {
+  font-size: 1.15rem;
+}
+
+.cardPrompt {
+  margin-top: 0.5rem;
+  font-size: 0.88rem;
+}
+
+.historyRow {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.historyItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: var(--bg-surface);
+  padding: 1.25rem 1rem;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.historyItem:hover {
+  border-color: var(--border-glow);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+
+.historyDetails {
+  flex: 1;
+}

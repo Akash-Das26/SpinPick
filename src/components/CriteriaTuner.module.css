@@ -1,0 +1,47 @@
+.panel {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.title {
+  font-size: 1.15rem;
+}
+
+.gridResponsive {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.rangeLime {
+  accent-color: var(--accent-lime);
+}
+
+.rangeCyan {
+  accent-color: var(--accent-cyan);
+}
+
+.rangePurple {
+  accent-color: var(--accent-purple);
+}
+
+.rangeDanger {
+  accent-color: #ff4d6d;
+}
+
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

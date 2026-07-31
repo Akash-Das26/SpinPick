@@ -1,0 +1,98 @@
+name: CI — E2E Tests
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: true
+
+jobs:
+  lint-and-build:
+    name: Lint, Unit Tests & Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      - name: Build (production)
+        run: npm run build
+
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+          retention-days: 1
+
+  e2e:
+    name: E2E Tests (48 tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: lint-and-build
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Download dist artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Playwright Chromium browser
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install chromium
+
+      - name: Install Playwright system dependencies
+        run: npx playwright install-deps chromium
+
+      - name: Start preview server (production build)
+        run: |
+          npx vite preview --port 5173 --strictPort &
+          for i in $(seq 1 20); do
+            curl -s -o /dev/null http://localhost:5173 && echo "Preview server ready on :5173" && success=1 && break
+            echo "Waiting for preview server... ($i/20)"
+            sleep 1
+          done
+          if [ -z "$success" ]; then
+            echo '❌ Preview server failed to start after 20s'
+            exit 1
+          fi
+
+      - name: Run E2E tests
+        run: npm run test:e2e

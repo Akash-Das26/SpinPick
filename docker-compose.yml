@@ -1,0 +1,30 @@
+# ============================================================================
+# SpinPick — OpenRouter Proxy
+# ----------------------------------------------------------------------------
+# Deploy the proxy with one command:
+#
+#   OPENROUTER_API_KEY=sk-or-v1-... docker compose up -d --build
+#
+# The key can also live in a local .env file next to this one (never commit it).
+# After the container is up, set VITE_OPENROUTER_PROXY_URL on the frontend
+# build to this proxy's public origin (e.g. https://api.spinpick.app).
+# ============================================================================
+
+services:
+  spinpick-proxy:
+    build: .
+    image: spinpick-proxy:latest
+    container_name: spinpick-proxy
+    restart: unless-stopped
+    ports:
+      - "8787:8787"
+    environment:
+      # REQUIRED — the OpenRouter API key. Stays server-side, never shipped.
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:?Set OPENROUTER_API_KEY — see README}
+      # RECOMMENDED — comma-separated frontend origin allow-list. When set,
+      # requests with a disallowed Origin header get 403. Leave unset for CORS *.
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
+      # Optional attribution + tuning
+      OPENROUTER_SITE_URL: ${OPENROUTER_SITE_URL:-https://spinpick.app}
+      OPENROUTER_APP_NAME: ${OPENROUTER_APP_NAME:-SpinPick Decision Studio}
+      UPSTREAM_TIMEOUT_MS: ${UPSTREAM_TIMEOUT_MS:-60000}

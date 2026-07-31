@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d8ff5b"/>
+      <stop offset="50%" stop-color="#a3ff12"/>
+      <stop offset="100%" stop-color="#38ef7d"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="192" height="192" rx="36" fill="#07070d"/>
+  <!-- Outer ring -->
+  <circle cx="96" cy="96" r="76" fill="none" stroke="#d8ff5b" stroke-width="8"/>
+  <!-- Segments -->
+  <circle cx="96" cy="96" r="66" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+  <!-- Center hub -->
+  <circle cx="96" cy="96" r="18" fill="url(#grad)"/>
+  <circle cx="96" cy="96" r="14" fill="#07070d"/>
+  <!-- Pointer arrow -->
+  <polygon points="96,20 90,48 102,48" fill="#d8ff5b"/>
+</svg>

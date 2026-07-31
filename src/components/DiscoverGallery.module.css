@@ -1,0 +1,108 @@
+.fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.sectionHeading {
+  margin-bottom: 2.25rem;
+  text-align: center;
+}
+
+.title {
+  margin-top: 1rem;
+  font-size: 2.2rem;
+}
+
+.copy {
+  margin-top: 2rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 1rem;
+}
+
+.grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.card:hover {
+  border-color: var(--border-glow);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.cardIcon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: rgba(216, 255, 91, 0.1);
+  color: var(--accent-lime);
+}
+
+.categoryTag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.25rem;
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.cardTitle {
+  margin-bottom: 0.75rem;
+  font-size: 1.2rem;
+}
+
+.cardText {
+  margin-bottom: 1rem;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.previewLabel {
+  margin-bottom: 0.65rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.tag {
+  font-size: 0.625rem;
+  color: var(--text-secondary);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+}

@@ -1,0 +1,93 @@
+.wrapper {
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+  margin-top: 4.5rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(216, 255, 91, 0.12);
+  background: linear-gradient(135deg, rgba(216, 255, 91, 0.1) 0%, rgba(56, 239, 125, 0.08) 50%, rgba(0, 242, 254, 0.06) 100%);
+  padding: clamp(32px, 5vw, 60px);
+}
+
+.glowBlob {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 50%;
+}
+
+.glowBlobTop {
+  top: -40px;
+  right: -40px;
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, rgba(216, 255, 91, 0.15) 0%, transparent 70%);
+}
+
+.glowBlobBottom {
+  bottom: -30px;
+  left: -30px;
+  width: 160px;
+  height: 160px;
+  background: radial-gradient(circle, rgba(0, 242, 254, 0.1) 0%, transparent 70%);
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 9999px;
+  font-weight: 800;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+  background: rgba(216, 255, 91, 0.12);
+  color: var(--accent-lime);
+  border: 1px solid rgba(216, 255, 91, 0.25);
+}
+
+.heading {
+  margin-bottom: 1rem;
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+}
+
+.copy {
+  margin: 0 auto 2rem;
+  max-width: 520px;
+  font-size: clamp(0.95rem, 2vw, 1.1rem);
+  line-height: 1.6;
+}
+
+.ctaButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  border-radius: 9999px;
+  padding: 0.95rem 2rem;
+  font-size: 1rem;
+  font-weight: 800;
+  background: var(--accent-lime);
+  color: var(--text-inverse);
+  text-decoration: none;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  box-shadow: var(--shadow-glow);
+}
+
+.ctaButton:hover,
+.ctaButton:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 0 50px -10px rgba(216, 255, 91, 0.6);
+}
+
+.smallText {
+  margin-top: 0.875rem;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}

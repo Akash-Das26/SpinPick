@@ -1,0 +1,180 @@
+.nav {
+  position: sticky;
+  top: 0;
+  transition: var(--transition-fast);
+  z-index: 50;
+  backdrop-filter: blur(16px);
+  padding: 12px 0;
+}
+
+.navTransparent {
+  background: var(--bg-glass-strong);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.navScrolled {
+  background: var(--bg-glass-strong);
+  border-bottom: 1px solid var(--border-medium);
+}
+
+.brandIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--accent-gradient);
+  box-shadow: var(--shadow-glow);
+}
+
+.logoSpinIcon {
+  animation: logoSpin 12s linear infinite;
+}
+
+.brandText {
+  display: none;
+}
+
+.brandName {
+  letter-spacing: -0.03em;
+}
+
+.brandTagline {
+  font-size: 0.6rem;
+  margin-top: -0.2rem;
+}
+
+.navbarTabsDesktop {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-surface);
+  padding: 4px;
+  border-radius: 9999px;
+  border: 1px solid var(--border-subtle);
+  flex: 1;
+  justify-content: center;
+  min-width: 0;
+}
+
+.themeToggle {
+  flex-shrink: 0;
+}
+
+.compareLink {
+  padding: 8px 13px;
+  justify-content: center;
+}
+
+.compareLink:hover {
+  border-color: var(--border-glow);
+  color: var(--accent-lime);
+}
+
+.mobileToggle {
+  display: none;
+}
+
+.navInner {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.mobileDrawer {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--bg-glass-strong);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-medium);
+  z-index: 49;
+  animation: slideDown 0.2s var(--ease-smooth);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+}
+
+.mobileMenuButton {
+  justify-content: flex-start;
+  font-size: 1rem;
+  min-height: 52px;
+}
+
+.mobileCompareLink {
+  justify-content: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border-glow);
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  color: var(--accent-lime);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.icon24 {
+  width: 24px;
+}
+
+@keyframes logoSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logoSpinIcon {
+    animation: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbarTabsDesktop {
+    display: none;
+  }
+
+  .mobileToggle {
+    display: grid;
+    place-items: center;
+  }
+
+  .brandText {
+    display: none;
+  }
+
+  .surpriseText {
+    display: none;
+  }
+
+  .navInner {
+    padding: 0 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navInner {
+    padding: 0 12px;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobileDrawer {
+    display: none;
+  }
+}

@@ -1,0 +1,86 @@
+# Repository settings managed by the Settings GitHub App
+# https://github.com/marketplace/settings
+
+repository:
+  # General repo info
+  name: SpinPick
+  description: >-
+    🎡 Type any decision. Spin. Multi-criteria AI & 1v1 Tournaments —
+    100% free, privacy-first decision wheel studio.
+  homepage: https://spinpick.app
+  topics: decision-wheel, spin-wheel, react, vite, tournament, ai
+
+  # Features
+  has_issues: true
+  has_projects: false
+  has_wiki: false
+  has_downloads: true
+
+  # Merge options
+  allow_squash_merge: true
+  allow_merge_commit: false
+  allow_rebase_merge: false
+  delete_branch_on_merge: true
+
+  # Security
+  allow_auto_merge: false
+  private: false
+
+branches:
+  - name: main
+    protection:
+      # Require CI checks to pass before merging
+      required_status_checks:
+        strict: true
+        contexts:
+          - "Lint, Unit Tests & Build"
+          - "E2E Tests (48 tests)"
+
+      # Require PR review before merging
+      required_pull_request_reviews:
+        required_approving_review_count: 1
+        dismiss_stale_reviews: true
+        require_code_owner_reviews: false
+
+      # Apply rules to admins too
+      enforce_admins: true
+
+      # No push restrictions — use PRs
+      restrictions: null
+
+      # No lock branch
+      required_linear_history: false
+
+labels:
+  # Standard issue/PR labels
+  - name: bug
+    color: ff4d6d
+    description: Something isn't working as expected
+
+  - name: enhancement
+    color: a3ff12
+    description: New feature or improvement request
+
+  - name: documentation
+    color: 00f2fe
+    description: Improvements or additions to documentation
+
+  - name: ci
+    color: 9b59ff
+    description: CI/CD pipeline changes
+
+  - name: refactor
+    color: ffb86c
+    description: Code cleanup without functional changes
+
+  - name: test
+    color: 38ef7d
+    description: Adding or improving tests
+
+  - name: pwa
+    color: d8ff5b
+    description: PWA, manifest, or service worker changes
+
+  - name: performance
+    color: ff52d9
+    description: Performance improvements
