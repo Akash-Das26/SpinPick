@@ -1,98 +1,148 @@
-name: CI — E2E Tests
+name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
   pull_request:
-    branches: [main, master]
-  workflow_dispatch:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
-env:
-  CI: true
+    branches: [main]
 
 jobs:
-  lint-and-build:
-    name: Lint, Unit Tests & Build
+  lint-and-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: '22'
+          cache: 'npm'
 
-      - run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Lint
+      - name: Run lint
         run: npm run lint
 
-      - name: Unit tests
+      - name: Run unit tests
         run: npm run test:unit
 
-      - name: Build (production)
+      - name: Build production
         run: npm run build
 
-      - name: Upload dist artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: dist/
-          if-no-files-found: error
-          retention-days: 1
-
-  e2e:
-    name: E2E Tests (48 tests)
+  validate-seo:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs: lint-and-build
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: '22'
+          cache: 'npm'
 
-      - run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Download dist artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist/
-
-      - name: Cache Playwright browsers
-        id: playwright-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-
-      - name: Install Playwright Chromium browser
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: npx playwright install chromium
-
-      - name: Install Playwright system dependencies
-        run: npx playwright install-deps chromium
-
-      - name: Start preview server (production build)
+      - name: Validate robots.txt exists
         run: |
-          npx vite preview --port 5173 --strictPort &
-          for i in $(seq 1 20); do
-            curl -s -o /dev/null http://localhost:5173 && echo "Preview server ready on :5173" && success=1 && break
-            echo "Waiting for preview server... ($i/20)"
-            sleep 1
-          done
-          if [ -z "$success" ]; then
-            echo '❌ Preview server failed to start after 20s'
+          if [ ! -f public/robots.txt ]; then
+            echo "❌ robots.txt missing"
             exit 1
           fi
+          echo "✅ robots.txt exists"
+
+      - name: Validate robots.txt content
+        run: |
+          if ! grep -q "User-agent:" public/robots.txt; then
+            echo "❌ robots.txt missing User-agent"
+            exit 1
+          fi
+          if ! grep -q "Sitemap:" public/robots.txt; then
+            echo "❌ robots.txt missing Sitemap reference"
+            exit 1
+          fi
+          echo "✅ robots.txt content valid"
+
+      - name: Validate sitemap.xml exists
+        run: |
+          if [ ! -f public/sitemap.xml ]; then
+            echo "❌ sitemap.xml missing"
+            exit 1
+          fi
+          echo "✅ sitemap.xml exists"
+
+      - name: Validate sitemap.xml is well-formed XML
+        run: |
+          xmllint --noout public/sitemap.xml
+          echo "✅ sitemap.xml is well-formed"
+
+      - name: Validate sitemap.xml has required URLs
+        run: |
+          if ! grep -q "https://spinpick.app/" public/sitemap.xml; then
+            echo "❌ sitemap.xml missing homepage URL"
+            exit 1
+          fi
+          if ! grep -q "https://spinpick.app/compare" public/sitemap.xml; then
+            echo "❌ sitemap.xml missing compare page URL"
+            exit 1
+          fi
+          echo "✅ sitemap.xml has required URLs"
+
+      - name: Validate manifest.json exists
+        run: |
+          if [ ! -f public/manifest.json ]; then
+            echo "❌ manifest.json missing"
+            exit 1
+          fi
+          echo "✅ manifest.json exists"
+
+      - name: Validate manifest.json is valid JSON
+        run: |
+          node -e "JSON.parse(require('fs').readFileSync('public/manifest.json', 'utf8'))"
+          echo "✅ manifest.json is valid JSON"
+
+      - name: Validate manifest.json has required fields
+        run: |
+          node -e "
+            const m = require('./public/manifest.json');
+            const required = ['name', 'short_name', 'start_url', 'display', 'icons'];
+            for (const field of required) {
+              if (!m[field]) {
+                console.error('❌ manifest.json missing field:', field);
+                process.exit(1);
+              }
+            }
+            console.log('✅ manifest.json has required fields');
+          "
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
 
       - name: Run E2E tests
         run: npm run test:e2e
+        env:
+          BASE_URL: http://localhost:5173
+
+  deploy-preview:
+    runs-on: ubuntu-latest
+    needs: [lint-and-test, validate-seo, e2e]
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Deploy to preview
+        run: echo "Deploy preview URL would be generated here"

@@ -1,6 +1,5 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { X, Download, FileSpreadsheet, FileCode, Image, Check } from '../lib/icons';
-import Papa from 'papaparse';
 import { useModalA11y } from '../hooks/useModalA11y';
 import styles from './ExporterModal.module.css';
 
@@ -22,7 +21,13 @@ function roundRect(ctx, x, y, w, h, r) {
 export function ExporterModal({ isOpen, onClose, currentPrompt, options, setOptions, displayVerdict }) {
   const [downloadSuccess, setDownloadSuccess] = useState(null);
   const [importMessage, setImportMessage] = useState(null);
+  const [Papa, setPapa] = useState(null);
   const modalRef = useRef(null);
+
+  // Dynamic import for PapaParse
+  useEffect(() => {
+    import('papaparse').then(m => setPapa(() => m.default));
+  }, []);
 
   useModalA11y({ isOpen, modalRef, onClose });
 
@@ -188,6 +193,72 @@ export function ExporterModal({ isOpen, onClose, currentPrompt, options, setOpti
 
     setDownloadSuccess('json');
     setTimeout(() => setDownloadSuccess(null), 2000);
+};
+
+  // Export full backup (history + wheels + aiConfig + current prompt)
+  const handleExportFullBackup = () => {
+    const history = JSON.parse(localStorage.getItem('spinpick_history') || '[]');
+    const wheels = JSON.parse(localStorage.getItem('spinpick_saved_wheels') || '[]');
+    const aiConfig = sessionStorage.getItem('spinpick_aiconfig');
+
+    const backup = {
+      version: 1,
+      timestamp: Date.now(),
+      exportedAt: new Date().toISOString(),
+      currentPrompt,
+      options,
+      displayVerdict,
+      history,
+      savedWheels: wheels,
+      aiConfig: aiConfig ? JSON.parse(aiConfig) : null,
+    };
+
+    const jsonStr = JSON.stringify(backup, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `spinpick-full-backup-${Date.now()}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+
+    setDownloadSuccess('full');
+    setTimeout(() => setDownloadSuccess(null), 2000);
+  };
+
+  // Import full backup
+  const handleImportFullBackup = (parsed) => {
+    try {
+      if (parsed.history && Array.isArray(parsed.history)) {
+        localStorage.setItem('spinpick_history', JSON.stringify(parsed.history));
+      }
+      if (parsed.savedWheels && Array.isArray(parsed.savedWheels)) {
+        localStorage.setItem('spinpick_saved_wheels', JSON.stringify(parsed.savedWheels));
+      }
+      if (parsed.aiConfig) {
+        sessionStorage.setItem('spinpick_aiconfig', JSON.stringify(parsed.aiConfig));
+      }
+      if (parsed.currentPrompt) {
+        // This would need to be communicated to parent - we'll use an event
+        window.dispatchEvent(new CustomEvent('spinpick:restore-prompt', { detail: parsed.currentPrompt }));
+      }
+      if (parsed.options && Array.isArray(parsed.options)) {
+        setOptions(parsed.options);
+      }
+      if (parsed.displayVerdict) {
+        window.dispatchEvent(new CustomEvent('spinpick:restore-verdict', { detail: parsed.displayVerdict }));
+      }
+
+      setImportMessage({ type: 'success', text: 'Full backup restored! Reloading...' });
+      setTimeout(() => {
+        setImportMessage(null);
+        window.location.reload();
+      }, 1500);
+    } catch (err) {
+      console.error('Import failed:', err);
+      setImportMessage({ type: 'error', text: 'Failed to restore full backup. Please check file format.' });
+      setTimeout(() => setImportMessage(null), 3000);
+    }
   };
 
   // Import wheel from uploaded CSV or JSON file
@@ -203,12 +274,24 @@ export function ExporterModal({ isOpen, onClose, currentPrompt, options, setOpti
 
         if (file.name.endsWith('.json')) {
           const parsed = JSON.parse(text);
+          
+          // Detect full backup format (version + history + savedWheels)
+          if (parsed.version && (parsed.history || parsed.savedWheels)) {
+            handleImportFullBackup(parsed);
+            return;
+          }
+          
+          // Regular wheel-only JSON
           if (Array.isArray(parsed.options)) {
             setOptions(parsed.options);
             setImportMessage({ type: 'success', text: `Loaded ${parsed.options.length} options from JSON!` });
             setTimeout(() => { setImportMessage(null); onClose(); }, 1200);
           }
         } else if (file.name.endsWith('.csv')) {
+          if (!Papa) {
+            setImportMessage({ type: 'error', text: 'CSV parser loading... please try again in a moment.' });
+            return;
+          }
           Papa.parse(text, {
             header: true,
             skipEmptyLines: true,
@@ -307,6 +390,16 @@ export function ExporterModal({ isOpen, onClose, currentPrompt, options, setOpti
               {downloadSuccess === 'json' ? 'Downloaded!' : 'Export JSON'}
             </button>
           </div>
+
+          <div className="bg-surface border-subtle rounded-md p-16">
+            <Image size={20} color="var(--accent-lime)" className="mb-8" aria-hidden="true" />
+            <h4 className={`font-extrabold ${styles.headingSmall}`}>Full Backup (History + Wheels + Settings)</h4>
+            <p className="text-xs text-muted mb-12">Complete app state including decision history, saved wheels, and AI config</p>
+            <button className="btn btn-primary btn-sm w-full" onClick={handleExportFullBackup}>
+              {downloadSuccess === 'full' ? <Check size={14} /> : <Download size={14} />}
+              {downloadSuccess === 'full' ? 'Exported!' : 'Export Full Backup'}
+            </button>
+          </div>
         </div>
 
         {/* Import feedback */}
@@ -323,10 +416,10 @@ export function ExporterModal({ isOpen, onClose, currentPrompt, options, setOpti
         {/* Import Section */}
         <div className="border-top pt-16">
           <label htmlFor="import-file-input" className="block text-sm font-bold mb-8">
-            Import Wheel File (.csv or .json)
+            Import File (.csv, .json wheel, or .json full backup)
           </label>
           <p className="text-xs text-muted mb-8">
-            Import a previously exported CSV or JSON wheel and continue editing it instantly.
+            Import a previously exported CSV or JSON wheel, or restore a complete app state from a full backup.
           </p>
           <div className="relative">
             <input 

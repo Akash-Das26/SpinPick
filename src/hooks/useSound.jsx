@@ -40,6 +40,7 @@ function releaseAudioContext() {
 export function SoundProvider({ children }) {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const audioCtxRef = useRef(null);
+  const initializedRef = useRef(false);
 
   // Acquire a singleton reference on mount, release on unmount
   useEffect(() => {
@@ -48,6 +49,49 @@ export function SoundProvider({ children }) {
       audioCtxRef.current = null;
       releaseAudioContext();
     };
+  }, []);
+
+  // Handle autoplay policy: defer AudioContext creation until first user interaction
+  useEffect(() => {
+    if (initializedRef.current) return;
+    
+    const resumeAudio = async () => {
+      const ctx = getAudioContextSingleton();
+      if (ctx && ctx.state === 'suspended') {
+        try {
+          await ctx.resume();
+        } catch {
+          // Ignore resume errors
+        }
+      }
+      initializedRef.current = true;
+      // Remove listeners after first interaction
+      document.removeEventListener('click', resumeAudio);
+      document.removeEventListener('keydown', resumeAudio);
+      document.removeEventListener('touchstart', resumeAudio);
+    };
+    
+    document.addEventListener('click', resumeAudio, { once: true, passive: true });
+    document.addEventListener('keydown', resumeAudio, { once: true, passive: true });
+    document.addEventListener('touchstart', resumeAudio, { once: true, passive: true });
+    
+    return () => {
+      document.removeEventListener('click', resumeAudio);
+      document.removeEventListener('keydown', resumeAudio);
+      document.removeEventListener('touchstart', resumeAudio);
+    };
+  }, []);
+
+  // Cleanup on page unload
+  useEffect(() => {
+    const handleUnload = () => {
+      if (audioContextSingleton && audioContextSingleton.state !== 'closed') {
+        audioContextSingleton.close();
+        audioContextSingleton = null;
+      }
+    };
+    window.addEventListener('beforeunload', handleUnload);
+    return () => window.removeEventListener('beforeunload', handleUnload);
   }, []);
 
   const getCtx = useCallback(() => {

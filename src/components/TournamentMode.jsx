@@ -1,8 +1,92 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Trophy, Swords, ArrowRight, CheckCircle2, Sparkles, X } from '../lib/icons';
 import confetti from 'canvas-confetti';
 import { useSound } from '../hooks/useSound';
 import styles from './TournamentMode.module.css';
+
+// Build bracket tree structure for visual bracket display
+function buildBracketTree(allMatches) {
+  // Group matches by round
+  const rounds = {};
+  allMatches.forEach(match => {
+    const round = match.round || 1;
+    if (!rounds[round]) rounds[round] = [];
+    rounds[round].push(match);
+  });
+  
+  // Sort rounds and matches within rounds
+  const sortedRounds = Object.keys(rounds)
+    .map(Number)
+    .sort((a, b) => a - b)
+    .map(roundNum => ({
+      round: roundNum,
+      label: roundNum === 1 ? 'ROUND 1' : roundNum === 2 ? 'SEMIS' : roundNum === 3 ? 'FINALS' : `ROUND ${roundNum}`,
+      matches: rounds[roundNum].sort((a, b) => (a.matchNum || 0) - (b.matchNum || 0))
+    }));
+  
+  return sortedRounds;
+}
+
+// BracketTree component for visual bracket display
+function BracketTree({ matches, currentMatch }) {
+  const rounds = useMemo(() => buildBracketTree(matches), [matches]);
+  
+  // Find the globally active match across all rounds
+  let activeMatchId = null;
+  if (currentMatch) {
+    activeMatchId = currentMatch.id;
+  }
+  
+  return (
+    <div className={styles.bracketTree} role="region" aria-label="Tournament bracket visualization">
+      <h4 className="mono text-xs text-lime uppercase tracking-wider mb-8">
+        BRACKET VIEW
+      </h4>
+      <div className={styles.bracketTree__rounds}>
+        {rounds.map((round, roundIdx) => (
+          <div key={round.round} className={styles.bracketTree__round}>
+            <span className={styles.bracketTree__roundLabel}>{round.label}</span>
+            {round.matches.map((match) => {
+              const isActive = match.id === activeMatchId;
+              const hasWinner = match.winner !== null;
+              const isWinnerMatch = hasWinner && match.winner;
+              
+              return (
+                <div
+                  key={match.id}
+                  className={`${styles.bracketTree__match} ${isActive ? styles['bracketTree__match--active'] : ''} ${hasWinner ? styles['bracketTree__match--winner'] : ''}`}
+                >
+                  {/* Player 1 */}
+                  <div className={`${styles.bracketTree__player} ${styles['bracketTree__player--p1']} ${isWinnerMatch && match.winner.id === match.player1.id ? styles['bracketTree__player--winner'] : ''}`}>
+                    <span className={styles.bracketTree__playerLabel}>PLAYER 1</span>
+                    <span className={styles.bracketTree__playerName}>{match.player1.label}</span>
+                    {isWinnerMatch && match.winner.id === match.player1.id && (
+                      <span className={styles.bracketTree__winnerBadge}>WINNER</span>
+                    )}
+                  </div>
+                  
+                  {/* Player 2 */}
+                  <div className={`${styles.bracketTree__player} ${styles['bracketTree__player--p2']} ${isWinnerMatch && match.winner.id === match.player2.id ? styles['bracketTree__player--winner'] : ''}`}>
+                    <span className={styles.bracketTree__playerLabel}>PLAYER 2</span>
+                    <span className={styles.bracketTree__playerName}>{match.player2.label}</span>
+                    {isWinnerMatch && match.winner.id === match.player2.id && (
+                      <span className={styles.bracketTree__winnerBadge}>WINNER</span>
+                    )}
+                  </div>
+                  
+                  {/* Connector to next round */}
+                  {roundIdx < rounds.length - 1 && (
+                    <div className={`${styles.bracketTree__connector} ${hasWinner ? styles['bracketTree__connector--winner'] : ''}`} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export function TournamentMode({ options, onExitTournament }) {
   const { playVictory } = useSound();
@@ -12,14 +96,34 @@ export function TournamentMode({ options, onExitTournament }) {
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [matchWinner, setMatchWinner] = useState(null);
+  const [seedingMode, setSeedingMode] = useState('random'); // 'random', 'weight', 'manual'
   const animRef = useRef(null);
   const tournamentStartedRef = useRef(false);
+
+  // Seed options based on seeding mode
+  const getSeededOptions = useCallback((opts, mode) => {
+    let seeded = [...opts];
+    if (mode === 'weight') {
+      // Higher weight = better seed (lower index)
+      seeded.sort((a, b) => (b.weight || 1) - (a.weight || 1));
+    } else if (mode === 'random') {
+      // Cryptographically secure shuffle
+      const randArr = new Uint32Array(seeded.length);
+      crypto.getRandomValues(randArr);
+      for (let i = seeded.length - 1; i > 0; i--) {
+        const j = randArr[i] % (i + 1);
+        [seeded[i], seeded[j]] = [seeded[j], seeded[i]];
+      }
+    }
+    // 'manual' keeps user's order
+    return seeded;
+  }, []);
 
   useEffect(() => {
     if (!options || options.length < 2) return;
     if (tournamentStartedRef.current) return;
 
-    let seedOptions = [...options];
+    let seedOptions = getSeededOptions(options, seedingMode);
     if (seedOptions.length % 2 !== 0) {
       seedOptions.push({
         id: `opt-bye-${Date.now()}`,
@@ -47,7 +151,7 @@ export function TournamentMode({ options, onExitTournament }) {
     setChampion(null);
     setMatchWinner(null);
     tournamentStartedRef.current = true;
-  }, [options]);
+  }, [options, seedingMode, getSeededOptions]);
 
   const currentMatch = matches[currentMatchIndex];
 
@@ -161,10 +265,32 @@ export function TournamentMode({ options, onExitTournament }) {
           <h2 className="text-2xl font-black mt-4">Tournament</h2>
         </div>
 
-        <button className="btn btn-secondary btn-sm" onClick={onExitTournament}>
-          <X size={16} aria-hidden="true" />
-          Exit Tournament
-        </button>
+        <div className="flex items-center gap-8">
+          {/* Seeding Mode Selector */}
+          <div className="flex items-center gap-6">
+            <label className="mono text-xs text-muted" htmlFor="seeding-mode">Seed:</label>
+            <select
+              id="seeding-mode"
+              value={seedingMode}
+              onChange={(e) => setSeedingMode(e.target.value)}
+              disabled={matches.length > 0}
+              className="bg-surface border-medium rounded-sm text-primary px-8 py-4 text-sm"
+              aria-label="Tournament seeding mode"
+            >
+              <option value="random">Random</option>
+              <option value="weight">Weight-Based</option>
+              <option value="manual">Manual</option>
+            </select>
+            {matches.length > 0 && (
+              <span className="mono text-xs text-muted">(Start new tournament to change)</span>
+            )}
+          </div>
+
+          <button className="btn btn-secondary btn-sm" onClick={onExitTournament}>
+            <X size={16} aria-hidden="true" />
+            Exit Tournament
+          </button>
+        </div>
       </div>
 
       {champion ? (
@@ -261,6 +387,13 @@ export function TournamentMode({ options, onExitTournament }) {
               </div>
             </div>
           )}
+          
+          {/* Visual Bracket Tree */}
+          <BracketTree 
+            matches={matches} 
+            currentMatchIndex={currentMatchIndex} 
+            currentMatch={currentMatch} 
+          />
 
           <div className="glass-panel p-24">
             <h3 className="mono text-sm text-muted uppercase tracking-wider mb-16">

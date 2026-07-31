@@ -58,4 +58,5 @@ export {
   ChevronDown,
   Clock,
   Shield,
+  Link2,
 } from 'lucide-react';

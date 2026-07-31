@@ -1,21 +1,23 @@
-import React, { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import { Navbar } from './components/Navbar';
-import { WheelStage } from './components/WheelStage';
-import { ResultCard } from './components/ResultCard';
 import { SliceEditor } from './components/SliceEditor';
 import { AISettingsModal } from './components/AISettingsModal';
-import { CriteriaTuner } from './components/CriteriaTuner';
 import { ExporterModal } from './components/ExporterModal';
-import { HowItWorks } from './components/HowItWorks';
 import { Footer } from './components/Footer';
 import { OnboardingTour } from './components/OnboardingTour';
+import { StudioView } from './views/StudioView';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { TabError } from './components/TabError';
 import styles from './App.module.css';
 
-import { aiService } from './services/aiService';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { SoundProvider } from './hooks/useSound.jsx';
-import { QUICK_CHIPS, SURPRISE_PROMPTS } from './data/presets';
-import { Sparkles, RefreshCw } from './lib/icons';
+import { useWheelEngine } from './hooks/useWheelEngine';
+import { useAIConfig } from './hooks/useAIConfig';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { SURPRISE_PROMPTS, DEFAULT_PROMPT } from './data/constants';
+import { parseVerdictPermalink } from './lib/share';
+import { RefreshCw } from './lib/icons';
 import { applyTheme, resolveTheme } from './lib/theme';
 
 // Code-split heavy tab views to keep initial JS bundle ultra-fast
@@ -23,8 +25,6 @@ const CustomBuilder = lazy(() => import('./components/CustomBuilder').then(m => 
 const DiscoverGallery = lazy(() => import('./components/DiscoverGallery').then(m => ({ default: m.DiscoverGallery })));
 const DecisionHistory = lazy(() => import('./components/DecisionHistory').then(m => ({ default: m.DecisionHistory })));
 const TournamentMode = lazy(() => import('./components/TournamentMode').then(m => ({ default: m.TournamentMode })));
-
-const HISTORY_LIMIT = 100;
 
 export function App() {
   return (
@@ -38,25 +38,13 @@ function AppInner() {
   const [activeTab, setActiveTab] = useState('studio');
   const [isSliceEditorOpen, setIsSliceEditorOpen] = useState(false);
   const [isAISettingsOpen, setIsAISettingsOpen] = useState(false);
-  const [isCriteriaTunerOpen, setIsCriteriaTunerOpen] = useState(false);
   const [isExporterOpen, setIsExporterOpen] = useState(false);
 
-  const [promptInput, setPromptInput] = useState('What should I cook for dinner tonight?');
-  const [currentPrompt, setCurrentPrompt] = useState('What should I cook for dinner tonight?');
-  const [options, setOptions] = useState([]);
-  const [targetWinnerIndex, setTargetWinnerIndex] = useState(null);
-
-  const [isSpinning, setIsSpinning] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generateError, setGenerateError] = useState(null);
-
-  const isGeneratingRef = useRef(false);
-  const pendingVerdictRef = useRef(null);
-  const [displayVerdict, setDisplayVerdict] = useState(null);
+  const [promptInput, setPromptInput] = useState(DEFAULT_PROMPT);
+  const [currentPrompt, setCurrentPrompt] = useState(DEFAULT_PROMPT);
 
   const [showTour, setShowTour] = useState(false);
-  const [hasSeenTour, setHasSeenTour] = useLocalStorage('spinpick_tour_seen', false);
-  const [history, setHistory] = useLocalStorage('spinpick_history', []);
+  const [, setHasSeenTour] = useLocalStorage('spinpick_tour_seen', false);
   const [theme, setTheme] = useState(() => {
     try {
       const savedTheme = window.localStorage.getItem('spinpick_theme');
@@ -67,6 +55,8 @@ function AppInner() {
     }
   });
 
+  const { aiConfig, setAiConfig } = useAIConfig();
+
   useEffect(() => {
     applyTheme(theme);
   }, [theme]);
@@ -75,15 +65,15 @@ function AppInner() {
     setTheme((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'));
   }, []);
 
-  // Show onboarding tour after options load on first visit
+  // Listen for tour start event from StudioView
   useEffect(() => {
-    if (options.length > 0 && !hasSeenTour && !showTour) {
-      // Small delay to let the UI settle
-      // Delay to let the user see the wheel before the tour overlay appears
-      const timer = setTimeout(() => setShowTour(true), 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [options, hasSeenTour, showTour]);
+    const handleStartTour = () => setShowTour(true);
+    window.addEventListener('spinpick:start-tour', handleStartTour);
+    return () => window.removeEventListener('spinpick:start-tour', handleStartTour);
+  }, [setShowTour]);
+
+  // Show onboarding tour on user action (not auto)
+  // Tour is now triggered by button click in StudioView hero
 
   const handleDismissTour = useCallback(() => {
     setShowTour(false);
@@ -91,331 +81,126 @@ function AppInner() {
   }, [setHasSeenTour]);
 
   const handleRestartTour = useCallback(() => {
-    // Reset tour state so it shows again
     setHasSeenTour(false);
     setShowTour(true);
   }, [setHasSeenTour]);
 
-  const addHistoryItem = useCallback((item) => {
-    setHistory((prev) => [item, ...prev].slice(0, HISTORY_LIMIT));
-  }, [setHistory]);
-
   const isOpenRouterProxyEnabled = Boolean(import.meta.env.VITE_OPENROUTER_PROXY_URL);
 
-  const [aiConfig, setAiConfig] = useState(() => {
-    try {
-      const saved = sessionStorage.getItem('spinpick_aiconfig');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return {
-          apiKey: '',
-          modelName: parsed.modelName || 'openrouter/auto',
-          optionCount: Number(parsed.optionCount) || 8
-        };
-      }
-      return { apiKey: '', modelName: 'openrouter/auto', optionCount: 8 };
-    } catch {
-      return { apiKey: '', modelName: 'openrouter/auto', optionCount: 8 };
-    }
+  // Wheel engine handles all studio logic
+  const wheelEngine = useWheelEngine({
+    promptInput,
+    aiConfig,
+    onError: (err) => console.error('Wheel engine error:', err),
   });
 
+  // Keyboard shortcuts
+  useKeyboardShortcuts({
+    onSpin: () => wheelEngine.handleSpinComplete?.(), // Note: WheelStage handles spin internally
+    onTour: () => setShowTour(true),
+    setActiveTab,
+    isSpinning: wheelEngine.isSpinning,
+  });
+
+  // Handle permalink hash on page load
   useEffect(() => {
-    try {
-      sessionStorage.setItem('spinpick_aiconfig', JSON.stringify({
-        modelName: aiConfig.modelName,
-        optionCount: aiConfig.optionCount
-      }));
-    } catch (e) {
-      console.warn('Failed to write AI config to sessionStorage:', e);
+    const hash = window.location.hash;
+    if (hash && hash.startsWith('#')) {
+      const parsed = parseVerdictPermalink(hash);
+      if (parsed) {
+        // Restore the verdict from permalink
+        wheelEngine.setOptions(parsed.options || []);
+        wheelEngine.setDisplayVerdict({
+          winner: parsed.winner,
+          reasoning: parsed.reasoning,
+          actionSteps: parsed.actionSteps || [],
+          isSensitive: false,
+        });
+        wheelEngine.setCurrentPrompt(parsed.prompt || '');
+        wheelEngine.setPromptInput(parsed.prompt || '');
+        // Clear the hash after restoring
+        window.history.replaceState({}, document.title, window.location.pathname);
+        // Switch to studio tab
+        setActiveTab('studio');
+      }
     }
-  }, [aiConfig.modelName, aiConfig.optionCount]);
+  }, [wheelEngine, setActiveTab]);
 
-
-  const handleGenerateOptions = useCallback(async (queryText) => {
-    const q = (queryText || promptInput).trim();
-    if (!q || isGeneratingRef.current || isSpinning) return;
-
-    isGeneratingRef.current = true;
-    setIsGenerating(true);
-    setGenerateError(null);
-    setDisplayVerdict(null);
-    setCurrentPrompt(q);
-    pendingVerdictRef.current = null;
-
-    try {
-      const res = await aiService.generateWheelOptions(q, aiConfig);
-      setOptions(res.options);
-      setTargetWinnerIndex(res.winnerIndex);
-
-      pendingVerdictRef.current = {
-        winnerIndex: res.winnerIndex,
-        reasoning: res.reasoning,
-        actionSteps: res.actionSteps,
-        isSensitive: res.isSensitive,
-      };
-    } catch (err) {
-      console.error('Failed to generate options:', err);
-      setGenerateError('Could not generate options. Please try again.');
-    } finally {
-      isGeneratingRef.current = false;
-      setIsGenerating(false);
-    }
-  }, [promptInput, isSpinning, aiConfig]);
-
-  const handleGenerateOptionsRef = useRef(handleGenerateOptions);
-  useEffect(() => {
-    handleGenerateOptionsRef.current = handleGenerateOptions;
-  }, [handleGenerateOptions]);
-
-  const hasMountedRef = useRef(false);
-  useEffect(() => {
-    if (!hasMountedRef.current) {
-      hasMountedRef.current = true;
-      // Use setTimeout to ensure initial render completes and refs are ready
-      setTimeout(() => {
-        // Use ref to avoid stale closure
-        handleGenerateOptionsRef.current('What should I cook for dinner tonight?');
-      }, 0);
-    }
-  }, []); // Empty deps - only run once on mount
-
-  const handleSpinComplete = (winningSlice) => {
-    const ctx = pendingVerdictRef.current;
-    const verdict = {
-      winner: winningSlice,
-      reasoning: ctx?.reasoning ?? `The wheel landed on "${winningSlice.label}".`,
-      actionSteps: ctx?.actionSteps ?? [
-        `Commit to "${winningSlice.label}" immediately.`,
-        'Gather whatever you need to start.',
-        'Enjoy your decision without second-guessing!',
-      ],
-      isSensitive: ctx?.isSensitive ?? false,
-    };
-
-    setDisplayVerdict(verdict);
-
-    addHistoryItem({
-      id: `spin-${Date.now()}`,
-      timestamp: Date.now(),
-      prompt: currentPrompt,
-      winner: winningSlice,
-      options: [...options], // Store full options array for exact restore
-      winnerIndex: options.findIndex(o => o.id === winningSlice.id),
-      reasoning: verdict.reasoning,
-      actionSteps: verdict.actionSteps,
-      isSensitive: verdict.isSensitive,
-    });
-  };
-
-  const handleEliminateAndRespin = () => {
-    if (!displayVerdict?.winner || options.length <= 2) {
-      alert('Need at least 2 options remaining to eliminate!');
-      return;
-    }
-    const remaining = options.filter((o) => o.id !== displayVerdict.winner.id);
-    setOptions(remaining);
-    setDisplayVerdict(null);
-    pendingVerdictRef.current = null;
-    setTargetWinnerIndex(Math.floor(Math.random() * remaining.length));
-  };
-
-const handleSurprise = () => {
+  const handleSurprise = useCallback(() => {
     const picked = SURPRISE_PROMPTS[Math.floor(Math.random() * SURPRISE_PROMPTS.length)];
     setPromptInput(picked);
-    handleGenerateOptions(picked);
+    wheelEngine.handleGenerateOptions(picked);
     if (activeTab !== 'studio') {
       setActiveTab('studio');
     }
-  };
+  }, [activeTab, wheelEngine]);
 
-  const handleSelectPreset = (preset) => {
+  const handleSelectPreset = useCallback((preset) => {
     setPromptInput(preset.title);
     setCurrentPrompt(preset.title);
-    setOptions(preset.options);
-    setDisplayVerdict(null);
-    pendingVerdictRef.current = null;
-    setTargetWinnerIndex(0);
+    wheelEngine.setOptions(preset.options);
+    wheelEngine.setDisplayVerdict(null);
+    wheelEngine.setTargetWinnerIndex(0);
     setActiveTab('studio');
-  };
+  }, [wheelEngine]);
 
-  const handleLoadCustomWheel = (wheelData) => {
+  const handleLoadCustomWheel = useCallback((wheelData) => {
     setPromptInput(wheelData.title);
     setCurrentPrompt(wheelData.title);
-    setOptions(wheelData.options);
-    setDisplayVerdict(null);
-    pendingVerdictRef.current = null;
-    setTargetWinnerIndex(0);
+    wheelEngine.setOptions(wheelData.options);
+    wheelEngine.setDisplayVerdict(null);
+    wheelEngine.setTargetWinnerIndex(0);
     setActiveTab('studio');
-  };
+  }, [wheelEngine]);
 
-  const handleLoadPastSpin = (historyItem) => {
-    if (historyItem.options && historyItem.options.length > 0) {
-      // Restore exact past wheel state
-      setPromptInput(historyItem.prompt || '');
-      setCurrentPrompt(historyItem.prompt || '');
-      setOptions(historyItem.options);
-      setDisplayVerdict(null);
-      pendingVerdictRef.current = null;
-      setTargetWinnerIndex(historyItem.winnerIndex >= 0 ? historyItem.winnerIndex : 0);
-      
-      // If there's a saved verdict, restore it too
-      if (historyItem.winner && historyItem.reasoning) {
-        const restoredVerdict = {
-          winner: historyItem.winner,
-          reasoning: historyItem.reasoning,
-          actionSteps: historyItem.actionSteps || [],
-          isSensitive: historyItem.isSensitive || false,
-        };
-        setDisplayVerdict(restoredVerdict);
-      }
-    } else if (historyItem.prompt) {
-      // Fallback: regenerate from prompt (old history format)
-      setPromptInput(historyItem.prompt);
-      handleGenerateOptions(historyItem.prompt);
-    }
+  const handleLoadPastSpin = useCallback((historyItem) => {
+    wheelEngine.handleLoadPastSpin(historyItem);
     setActiveTab('studio');
-  };
+  }, [wheelEngine]);
 
   return (
     <div className={`${styles.wrapper} flex-col`}>
       <Navbar
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          openSettings={() => setIsAISettingsOpen(true)}
-          onSurprise={handleSurprise}
-          theme={theme}
-          toggleTheme={toggleTheme}
-        />
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        openSettings={() => setIsAISettingsOpen(true)}
+        onSurprise={handleSurprise}
+        theme={theme}
+        toggleTheme={toggleTheme}
+      />
 
       <main id="main-content" className={`container flex-1 ${styles.mainContainer}`}>
-
         {/* ── STUDIO TAB ─────────────────────────────────────────── */}
         {activeTab === 'studio' && (
-          <div>
-            {/* Hero */}
-            <div className="text-center mb-32">
-              <div className={`${styles.heroBadge}`}>
-                <span aria-hidden="true" className={styles.heroBadgeDot} />
-                Studio
-              </div>
-
-              <h1 className={`font-black tracking-tight mb-12 ${styles.heroTitle}`}>
-                Type any <span className="accent-text">decision</span>. Spin.<br />
-                Multi-criteria AI & 1v1 Tournaments.
-              </h1>
-
-              <p className={`text-secondary mx-auto mb-28 ${styles.heroCopy}`}>
-                SpinPick combines real-time AI option synthesis, multi-criteria weight tuning, and bracket elimination tournaments — 100% free with zero watermarks.
-              </p>
-
-              {/* Prompt Input */}
-              <div
-                className={`glass-panel-glow flex gap-8 mx-auto rounded-xl ${styles.promptWrapper}`}
-              >
-                <input
-                  type="text"
-                  placeholder="e.g. What should I cook for dinner tonight?"
-                  value={promptInput}
-                  onChange={(e) => setPromptInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleGenerateOptions()}
-                  disabled={isGenerating || isSpinning}
-                  aria-label="Enter your decision question"
-                  autoFocus
-                  className={`flex-1 text-primary font-medium ${styles.promptInput}`}
-                />
-                <button
-                  className="btn btn-primary rounded-lg"
-                  onClick={() => handleGenerateOptions()}
-                  disabled={isGenerating || isSpinning || !promptInput.trim()}
-                  aria-busy={isGenerating}
-                >
-                  {isGenerating
-                    ? <RefreshCw size={18} aria-hidden="true" className="spinner" />
-                    : <Sparkles size={18} aria-hidden="true" />}
-                  {isGenerating ? 'Generating…' : 'Generate Wheel'}
-                </button>
-              </div>
-
-              {/* Error banner */}
-              {generateError && (
-                <div role="alert" className={`text-danger text-sm rounded-sm ${styles.errorBanner}`}>
-                  {generateError}
-                </div>
-              )}
-
-              {/* Quick Chips */}
-              <div
-                role="group"
-                aria-label="Quick example prompts"
-                className={styles.quickChipsContainer}
-              >
-                <span className={`${styles.quickChipsLabel} mono text-xs text-muted self-center`} aria-hidden="true">
-                  Quick Try:
-                </span>
-                {QUICK_CHIPS.map((chip) => (
-                  <button
-                    key={chip}
-                    className="chip"
-                    onClick={() => { setPromptInput(chip); handleGenerateOptions(chip); }}
-                    disabled={isGenerating || isSpinning}
-                    aria-label={`Try prompt: ${chip}`}
-                  >
-                    {chip}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* AI Multi-Criteria Tuner Drawer */}
-            {isCriteriaTunerOpen && (
-              <CriteriaTuner 
-                options={options} 
-                setOptions={setOptions} 
-                onClose={() => setIsCriteriaTunerOpen(false)} 
-              />
-            )}
-
-            {/* Wheel + Verdict Grid */}
-            <div className={`wheel-verdict-grid items-start mt-24 ${styles.wheelVerdictGrid} ${displayVerdict?.winner ? styles.wheelVerdictGridSplit : styles.wheelVerdictGridSingle}`}>
-              <WheelStage
-                options={options}
-                targetWinnerIndex={targetWinnerIndex}
-                onSpinComplete={handleSpinComplete}
-                isSpinning={isSpinning}
-                setIsSpinning={setIsSpinning}
-                currentPrompt={currentPrompt}
-                onOpenSliceEditor={() => setIsSliceEditorOpen(true)}
-                onOpenCriteriaTuner={() => setIsCriteriaTunerOpen(!isCriteriaTunerOpen)}
-                onOpenExporter={() => setIsExporterOpen(true)}
-              />
-
-              {displayVerdict?.winner && (
-                <ResultCard
-                  winner={displayVerdict.winner}
-                  reasoning={displayVerdict.reasoning}
-                  actionSteps={displayVerdict.actionSteps}
-                  isSensitive={displayVerdict.isSensitive}
-                  prompt={currentPrompt}
-                  onSpinAgain={() => {
-                    setDisplayVerdict(null);
-                    setTargetWinnerIndex(Math.floor(Math.random() * options.length));
-                  }}
-                  onEliminateAndRespin={handleEliminateAndRespin}
-                  onSaveToHistory={(w, r) => {
-                    addHistoryItem({
-                      id: `saved-${Date.now()}`,
-                      timestamp: Date.now(),
-                      prompt: currentPrompt,
-                      winner: w,
-                      reasoning: r,
-                    });
-                  }}
-                />
-              )}
-            </div>
-
-            <HowItWorks />
-          </div>
+          <StudioView
+            promptInput={promptInput}
+            setPromptInput={setPromptInput}
+            currentPrompt={currentPrompt}
+            setCurrentPrompt={setCurrentPrompt}
+            options={wheelEngine.options}
+            setOptions={wheelEngine.setOptions}
+            targetWinnerIndex={wheelEngine.targetWinnerIndex}
+            setTargetWinnerIndex={wheelEngine.setTargetWinnerIndex}
+            isSpinning={wheelEngine.isSpinning}
+            setIsSpinning={wheelEngine.setIsSpinning}
+            isGenerating={wheelEngine.isGenerating}
+            generateError={wheelEngine.generateError}
+            displayVerdict={wheelEngine.displayVerdict}
+            setDisplayVerdict={wheelEngine.setDisplayVerdict}
+            history={wheelEngine.history}
+            setHistory={wheelEngine.setHistory}
+            handleGenerateOptions={wheelEngine.handleGenerateOptions}
+            handleSpinComplete={wheelEngine.handleSpinComplete}
+            handleEliminateAndRespin={wheelEngine.handleEliminateAndRespin}
+            handleLoadPastSpin={wheelEngine.handleLoadPastSpin}
+            addHistoryItem={wheelEngine.addHistoryItem}
+            onOpenSliceEditor={() => setIsSliceEditorOpen(true)}
+            onOpenCriteriaTuner={() => {}}
+            onOpenExporter={() => setIsExporterOpen(true)}
+            onSurprise={handleSurprise}
+            onSelectPreset={handleSelectPreset}
+            onLoadCustomWheel={handleLoadCustomWheel}
+          />
         )}
 
         {/* ── SECONDARY TABS WITH LAZY LOADING ───────────────────── */}
@@ -426,26 +211,34 @@ const handleSurprise = () => {
           </div>
         }>
           {activeTab === 'tournament' && (
-            <TournamentMode 
-              options={options} 
-              onExitTournament={() => setActiveTab('studio')} 
-            />
+            <ErrorBoundary fallback={<TabError tab="Tournament" />}>
+              <TournamentMode 
+                options={wheelEngine.options} 
+                onExitTournament={() => setActiveTab('studio')} 
+              />
+            </ErrorBoundary>
           )}
 
           {activeTab === 'builder' && (
-            <CustomBuilder onLoadCustomWheel={handleLoadCustomWheel} />
+            <ErrorBoundary fallback={<TabError tab="Custom Builder" />}>
+              <CustomBuilder onLoadCustomWheel={handleLoadCustomWheel} />
+            </ErrorBoundary>
           )}
 
           {activeTab === 'discover' && (
-            <DiscoverGallery onSelectPreset={handleSelectPreset} />
+            <ErrorBoundary fallback={<TabError tab="Discover" />}>
+              <DiscoverGallery onSelectPreset={handleSelectPreset} />
+            </ErrorBoundary>
           )}
 
           {activeTab === 'history' && (
-            <DecisionHistory
-              history={history}
-              onClearHistory={() => setHistory([])}
-              onLoadPastSpin={handleLoadPastSpin}
-            />
+            <ErrorBoundary fallback={<TabError tab="History" />}>
+              <DecisionHistory
+                history={wheelEngine.history}
+                onClearHistory={() => wheelEngine.setHistory([])}
+                onLoadPastSpin={handleLoadPastSpin}
+              />
+            </ErrorBoundary>
           )}
         </Suspense>
       </main>
@@ -455,8 +248,8 @@ const handleSurprise = () => {
       <SliceEditor
         isOpen={isSliceEditorOpen}
         onClose={() => setIsSliceEditorOpen(false)}
-        options={options}
-        setOptions={setOptions}
+        options={wheelEngine.options}
+        setOptions={wheelEngine.setOptions}
       />
 
       <AISettingsModal
@@ -467,14 +260,13 @@ const handleSurprise = () => {
         onRestartTour={handleRestartTour}
       />
 
-      {/* Feature C: Exporter & Data Hub Modal */}
       <ExporterModal 
         isOpen={isExporterOpen}
         onClose={() => setIsExporterOpen(false)}
         currentPrompt={currentPrompt}
-        options={options}
-        setOptions={setOptions}
-        displayVerdict={displayVerdict}
+        options={wheelEngine.options}
+        setOptions={wheelEngine.setOptions}
+        displayVerdict={wheelEngine.displayVerdict}
       />
 
       <OnboardingTour

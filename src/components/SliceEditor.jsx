@@ -1,27 +1,48 @@
-import React, { useState, useRef } from 'react';
-import { X, Plus, Trash2, RotateCcw } from '../lib/icons';
+import React, { useState, useRef, useCallback } from 'react';
+import { X, Plus, Trash2, RotateCcw, ArrowLeft, ArrowRight } from '../lib/icons';
 import { COLOR_SCHEMES } from '../services/aiService';
 import { useModalA11y } from '../hooks/useModalA11y';
 import styles from './SliceEditor.module.css';
+
+const MAX_HISTORY = 50;
+
 export function SliceEditor({ isOpen, onClose, options, setOptions }) {
   const [newLabel, setNewLabel] = useState('');
+  const [history, setHistory] = useState([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
   const modalRef = useRef(null);
+  const initializedRef = useRef(false);
 
-  useModalA11y({ isOpen, modalRef, onClose });
-
-  if (!isOpen) return null;
+  // Save to history when options change
+  const saveToHistory = useCallback((newOptions) => {
+    setHistory(prev => {
+      const newHistory = prev.slice(0, historyIndex + 1);
+      newHistory.push(JSON.parse(JSON.stringify(newOptions)));
+      if (newHistory.length > MAX_HISTORY) {
+        newHistory.shift();
+      }
+      return newHistory;
+    });
+    setHistoryIndex(prev => Math.min(prev + 1, newHistory.length - 1));
+  }, [historyIndex]);
 
   const handleLabelChange = (id, label) => {
-    setOptions(options.map(o => o.id === id ? { ...o, label } : o));
+    const newOptions = options.map(o => o.id === id ? { ...o, label } : o);
+    setOptions(newOptions);
+    saveToHistory(newOptions);
   };
 
   const handleWeightChange = (id, weight) => {
     const w = Math.max(1, Math.min(10, parseInt(weight) || 1));
-    setOptions(options.map(o => o.id === id ? { ...o, weight: w } : o));
+    const newOptions = options.map(o => o.id === id ? { ...o, weight: w } : o);
+    setOptions(newOptions);
+    saveToHistory(newOptions);
   };
 
   const handleColorChange = (id, color) => {
-    setOptions(options.map(o => o.id === id ? { ...o, color } : o));
+    const newOptions = options.map(o => o.id === id ? { ...o, color } : o);
+    setOptions(newOptions);
+    saveToHistory(newOptions);
   };
 
   const handleDelete = (id) => {
@@ -29,7 +50,9 @@ export function SliceEditor({ isOpen, onClose, options, setOptions }) {
       alert("A wheel needs at least 2 options!");
       return;
     }
-    setOptions(options.filter(o => o.id !== id));
+    const newOptions = options.filter(o => o.id !== id);
+    setOptions(newOptions);
+    saveToHistory(newOptions);
   };
 
   const handleAddOption = (e) => {
@@ -43,13 +66,47 @@ export function SliceEditor({ isOpen, onClose, options, setOptions }) {
       weight: 1,
       color: colors[options.length % colors.length]
     };
-    setOptions([...options, newOpt]);
+    const newOptions = [...options, newOpt];
+    setOptions(newOptions);
     setNewLabel('');
+    saveToHistory(newOptions);
   };
 
   const handleResetWeights = () => {
-    setOptions(options.map(o => ({ ...o, weight: 1 })));
+    const newOptions = options.map(o => ({ ...o, weight: 1 }));
+    setOptions(newOptions);
+    saveToHistory(newOptions);
   };
+
+  const handleUndo = () => {
+    if (historyIndex > 0) {
+      const newIndex = historyIndex - 1;
+      setOptions(history[newIndex]);
+      setHistoryIndex(newIndex);
+    }
+  };
+
+  const handleRedo = () => {
+    if (historyIndex < history.length - 1) {
+      const newIndex = historyIndex + 1;
+      setOptions(history[newIndex]);
+      setHistoryIndex(newIndex);
+    }
+  };
+
+  const canUndo = historyIndex > 0;
+  const canRedo = historyIndex < history.length - 1 && history.length > 0;
+
+  // Initialize history on first open
+  if (!initializedRef.current && options.length > 0) {
+    initializedRef.current = true;
+    setHistory([JSON.parse(JSON.stringify(options))]);
+    setHistoryIndex(0);
+  }
+
+  useModalA11y({ isOpen, modalRef, onClose });
+
+  if (!isOpen) return null;
 
   return (
     <div
@@ -143,10 +200,30 @@ export function SliceEditor({ isOpen, onClose, options, setOptions }) {
 
         {/* Modal Footer */}
         <div className="flex justify-between items-center px-24 py-16 border-top">
-          <button className="btn btn-secondary btn-sm" onClick={handleResetWeights}>
-            <RotateCcw size={14} />
-            Reset Equal Weights
-          </button>
+          <div className="flex items-center gap-8">
+            <button 
+              className={`btn btn-secondary btn-sm ${!canUndo ? 'opacity-50 pointer-events-none' : ''}`}
+              onClick={handleUndo}
+              disabled={!canUndo}
+              aria-label="Undo"
+              title="Undo"
+            >
+              <ArrowLeft size={14} />
+            </button>
+            <button 
+              className={`btn btn-secondary btn-sm ${!canRedo ? 'opacity-50 pointer-events-none' : ''}`}
+              onClick={handleRedo}
+              disabled={!canRedo}
+              aria-label="Redo"
+              title="Redo"
+            >
+              <ArrowRight size={14} />
+            </button>
+            <button className="btn btn-secondary btn-sm" onClick={handleResetWeights}>
+              <RotateCcw size={14} />
+              Reset Equal Weights
+            </button>
+          </div>
           
           <button className="btn btn-primary" onClick={onClose}>
             Done Editing

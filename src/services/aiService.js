@@ -145,14 +145,11 @@ async function parseOpenRouterResponse(response, sourceLabel) {
 }
 
 // Route the request through the server-side proxy — no key leaves the server
-async function callOpenRouterProxy(modelName, prompt, optionCount, apiKey) {
+async function callOpenRouterProxy(modelName, prompt, optionCount) {
   const body = {
     model: modelName,
     messages: buildOpenRouterMessages(prompt, optionCount),
   };
-  if (apiKey && apiKey.trim().length > 0) {
-    body.apiKey = apiKey.trim();
-  }
 
   const response = await fetch(`${OPENROUTER_PROXY_URL}/api/openrouter`, {
     method: 'POST',
@@ -190,14 +187,14 @@ export const aiService = {
    * Generate decision options from a user prompt
    */
   generateWheelOptions: async (prompt, config = {}) => {
-    const { modelName = 'openrouter/auto', optionCount = 8, apiKey } = config;
+    const { modelName = 'openrouter/auto', optionCount = 8 } = config;
     const isSensitive = checkDisclaimerNeeded(prompt);
 
     // Preferred path: server-side proxy (key never in the browser).
     // Only used when VITE_OPENROUTER_PROXY_URL is configured at build time.
     if (OPENROUTER_PROXY_URL) {
       try {
-        const parsed = await callOpenRouterProxy(modelName, prompt, optionCount, apiKey);
+        const parsed = await callOpenRouterProxy(modelName, prompt, optionCount);
         if (Array.isArray(parsed.options) && parsed.options.length > 0) {
           return formatAiResult(parsed, isSensitive, 'OpenRouter AI (via proxy)');
         }

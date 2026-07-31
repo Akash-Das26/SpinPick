@@ -1,6 +1,5 @@
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { RotateCcw, Edit3, SlidersHorizontal, Download } from '../lib/icons';
-import confetti from 'canvas-confetti';
 import { useSound } from '../hooks/useSound';
 import styles from './WheelStage.module.css';
 
@@ -42,6 +41,13 @@ export function WheelStage({
   const pointerElRef = useRef(null);
   const animRef = useRef(null);
   const lastSliceIndexRef = useRef(-1);
+  const [confetti, setConfetti] = useState(null);
+  const [spinSpeed, setSpinSpeed] = useState(3500); // Default 3.5 seconds
+
+  // Dynamic import for confetti
+  useEffect(() => {
+    import('canvas-confetti').then(m => setConfetti(() => m.default));
+  }, []);
 
   const applyRotation = useCallback((deg) => {
     if (wheelElRef.current) {
@@ -85,7 +91,7 @@ export function WheelStage({
     const finalRot = rotationRef.current + (360 * 6) + (deltaTarget - startRot + 360) % 360;
 
     const startTime = performance.now();
-    const duration = 3500;
+    const duration = spinSpeed;
 
     const animate = (now) => {
       const elapsed = now - startTime;
@@ -107,6 +113,12 @@ export function WheelStage({
           pointerElRef.current.classList.add('pointer-bounce');
           setTimeout(() => pointerElRef.current?.classList.remove('pointer-bounce'), 60);
         }
+        
+        // Announce current slice for screen readers
+        const liveRegion = wheelElRef.current?.querySelector('[aria-live]');
+        if (liveRegion) {
+          liveRegion.textContent = `Passing ${slices[currentSliceIdx].label}`;
+        }
       }
 
       if (progress < 1) {
@@ -117,7 +129,7 @@ export function WheelStage({
         playVictory();
 
         const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        if (!prefersReduced) {
+        if (!prefersReduced && confetti) {
           confetti({
             particleCount: 80,
             spread: 70,
@@ -183,6 +195,26 @@ export function WheelStage({
             <Download size={14} aria-hidden="true" />
             Export
           </button>
+
+          {/* Spin Speed Control */}
+          <div className="flex items-center gap-6 px-4" style={{ minWidth: '180px' }}>
+            <span className="mono text-xs text-muted" aria-hidden="true">Speed</span>
+            <input
+              type="range"
+              min="1000"
+              max="8000"
+              step="500"
+              value={spinSpeed}
+              onChange={(e) => setSpinSpeed(parseInt(e.target.value))}
+              disabled={isSpinning}
+              aria-label="Spin animation speed"
+              title={`Spin duration: ${spinSpeed}ms`}
+              className="flex-1"
+            />
+            <span className="mono text-xs text-muted" style={{ minWidth: '45px' }}>
+              {spinSpeed}ms
+            </span>
+          </div>
         </div>
       </div>
 
@@ -198,6 +230,12 @@ export function WheelStage({
         <div ref={wheelElRef} className={`${styles.wheelDisc} wheel-disc`}>
           <svg viewBox="-100 -100 200 200" aria-label="Decision spin wheel" role="img"
             className={`${styles.wheelSvg} wheel-svg`}>
+            <title>Decision wheel with {slices.length} options</title>
+            <desc>
+              {slices.map(s => `${s.label} (${Math.round(s.sliceAngle)}°)`).join(', ')}
+            </desc>
+            {/* Live region for screen reader announcements during spin */}
+            <text aria-live="polite" aria-atomic="true" className="sr-only" />
             {slices.map((slice) => {
               const startRad = (slice.startAngle * Math.PI) / 180;
               const endRad = (slice.endAngle * Math.PI) / 180;
@@ -234,6 +272,7 @@ export function WheelStage({
                     textAnchor="middle"
                     dominantBaseline="middle"
                     transform={`rotate(${slice.midAngle} ${tx} ${ty})`}
+                    title={slice.label}
                   >
                     {displayLabel}
                   </text>

@@ -96,12 +96,12 @@ describe('aiService — proxy routing (VITE_OPENROUTER_PROXY_URL)', () => {
     expect(result.winnerIndex).toBe(0);
   });
 
-  it('prefers the proxy over BYOK even when a user API key is provided', async () => {
+  it('does NOT forward user API key to proxy (security fix)', async () => {
     const aiService = await loadAiService('http://localhost:8787');
     fetchMock.mockResolvedValue(okResponse());
 
     const result = await aiService.generateWheelOptions('What should I cook?', {
-      apiKey: 'test-api-key-1234567890', // may be forwarded through proxy if configured
+      apiKey: 'test-api-key-1234567890',
       optionCount: 4,
     });
 
@@ -110,7 +110,8 @@ describe('aiService — proxy routing (VITE_OPENROUTER_PROXY_URL)', () => {
     expect(url).toBe('http://localhost:8787/api/openrouter');
     expect(init.headers.Authorization).toBeUndefined();
     const body = JSON.parse(init.body);
-    expect(body.apiKey).toBe('test-api-key-1234567890');
+    // Security fix: apiKey should NOT be forwarded to proxy
+    expect(body.apiKey).toBeUndefined();
     expect(result.source).toBe('OpenRouter AI (via proxy)');
   });
 

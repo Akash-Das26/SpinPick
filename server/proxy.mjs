@@ -61,13 +61,48 @@ const BASE_CORS_HEADERS = {
   'Content-Type': 'application/json',
 };
 
+// Rate limiting: 60 requests per minute per IP
+const RATE_LIMIT = 60;
+const RATE_WINDOW_MS = 60_000;
+const ipBuckets = new Map();
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const bucket = ipBuckets.get(ip) || { count: 0, windowStart: now };
+  
+  if (now - bucket.windowStart > RATE_WINDOW_MS) {
+    bucket.count = 0;
+    bucket.windowStart = now;
+  }
+  
+  if (bucket.count >= RATE_LIMIT) {
+    return false;
+  }
+  
+  bucket.count++;
+  ipBuckets.set(ip, bucket);
+  return true;
+}
+
+// CSP header for security
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self' https://plausible.io",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com",
+  "img-src 'self' data:",
+  "connect-src 'self' https://plausible.io",
+  "frame-ancestors 'none'",
+  "base-uri 'self'",
+  "form-action 'self'"
+].join('; ');
+
 function corsHeadersFor(origin) {
-  // When an allow-list is configured, reflect only the matched origin.
-  // Otherwise fall back to the permissive '*' for local/simple deployments.
   const allowOrigin = ALLOWED_ORIGINS.length > 0 ? (origin || '') : '*';
   return {
     ...BASE_CORS_HEADERS,
     'Access-Control-Allow-Origin': allowOrigin || 'null',
+    'Content-Security-Policy': CSP,
     ...(allowOrigin ? { Vary: 'Origin' } : {}),
   };
 }
@@ -104,6 +139,14 @@ const server = createServer(async (req, res) => {
   // Origin allow-list enforcement (before any other handling)
   if (!isOriginAllowed(origin)) {
     send(res, 403, { error: 'Origin not allowed' }, origin);
+    return;
+  }
+
+  // Rate limiting per IP
+  const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() 
+    || req.socket.remoteAddress;
+  if (!checkRateLimit(clientIp)) {
+    send(res, 429, { error: 'Rate limit exceeded. Try again in a minute.' }, origin);
     return;
   }
 
@@ -144,18 +187,14 @@ const server = createServer(async (req, res) => {
     return;
   }
 
-  const { model, messages, apiKey } = payload;
+  const { model, messages } = payload; // IGNORE apiKey from client - security fix
   if (!model || !Array.isArray(messages) || messages.length === 0) {
     send(res, 400, { error: 'Missing "model" or "messages"' }, origin);
     return;
   }
 
-  const outgoingKey = apiKey?.trim() || OPENROUTER_API_KEY;
-  if (!outgoingKey) {
-    console.error('[proxy] No OpenRouter key available (server env or request body).');
-    send(res, 500, { error: 'Proxy not configured: OPENROUTER_API_KEY missing' }, origin);
-    return;
-  }
+  // ONLY use server-side env key - never accept key from request body
+  const outgoingKey = OPENROUTER_API_KEY;
 
   try {
     const upstream = await fetch(OPENROUTER_ENDPOINT, {

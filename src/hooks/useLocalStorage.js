@@ -2,9 +2,13 @@ import { useState, useEffect } from 'react';
 
 /**
  * Reusable React hook for synchronizing state with LocalStorage safely.
+ * Handles SSR by deferring localStorage access until client-side hydration.
  */
 export function useLocalStorage(key, initialValue) {
   const [value, setValue] = useState(() => {
+    if (typeof window === 'undefined') {
+      return initialValue;
+    }
     try {
       const item = localStorage.getItem(key);
       return item ? JSON.parse(item) : initialValue;
@@ -14,13 +18,20 @@ export function useLocalStorage(key, initialValue) {
     }
   });
 
+  const [isClient, setIsClient] = useState(false);
+
   useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return;
     try {
       localStorage.setItem(key, JSON.stringify(value));
     } catch (e) {
       console.warn(`Failed to write localStorage key "${key}":`, e);
     }
-  }, [key, value]);
+  }, [key, value, isClient]);
 
   return [value, setValue];
 }

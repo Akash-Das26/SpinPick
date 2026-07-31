@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Trophy, Copy, Check, RotateCcw, AlertTriangle, ArrowRight, Bookmark, Share2 } from '../lib/icons';
-import { shareVerdict } from '../lib/share';
+import { Trophy, Copy, Check, RotateCcw, AlertTriangle, ArrowRight, Bookmark, Share2, Link2 } from '../lib/icons';
+import { shareVerdict, buildVerdictPermalink } from '../lib/share';
 import styles from './ResultCard.module.css';
 
 export function ResultCard({
@@ -9,6 +9,7 @@ export function ResultCard({
   actionSteps = [],
   isSensitive,
   prompt,
+  options = [],
   onSpinAgain,
   onEliminateAndRespin,
   onSaveToHistory
@@ -17,6 +18,7 @@ export function ResultCard({
   const [saved, setSaved] = useState(false);
   const [shared, setShared] = useState(false);
   const [promptCopied, setPromptCopied] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   if (!winner) return null;
 
@@ -36,6 +38,21 @@ export function ResultCard({
       setPromptCopied(true);
       setTimeout(() => setPromptCopied(false), 2000);
     }
+  };
+
+  const handleShareLink = () => {
+    if (!navigator.clipboard) return;
+    const permalink = buildVerdictPermalink({
+      winner,
+      reasoning,
+      actionSteps,
+      prompt,
+      options,
+      timestamp: Date.now(),
+    });
+    navigator.clipboard.writeText(permalink);
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
   };
 
   const handleSave = () => {
@@ -138,6 +155,11 @@ export function ResultCard({
         <button className="btn btn-secondary" onClick={handleCopyPrompt} aria-label="Copy prompt to clipboard">
           {promptCopied ? <Check size={16} color="var(--success)" aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
           {promptCopied ? 'Copied!' : 'Copy Prompt'}
+        </button>
+
+        <button className="btn btn-secondary" onClick={handleShareLink} aria-label="Copy shareable link to verdict">
+          {linkCopied ? <Check size={16} color="var(--success)" aria-hidden="true" /> : <Link2 size={16} aria-hidden="true" />}
+          {linkCopied ? 'Link Copied!' : 'Share Link'}
         </button>
 
         <button className="btn btn-secondary" onClick={handleShare} aria-label="Share verdict">

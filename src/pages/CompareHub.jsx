@@ -54,7 +54,7 @@ function CompareCard({ competitor }) {
         {/* quick facts */}
         <div className="flex flex-wrap gap-8">
           {[
-            { label: 'AI', win: !competitor.aiPowered },
+            { label: 'Smart Engine', win: !competitor.aiPowered },
             { label: 'Free', win: true },
             { label: 'No Ads', win: !competitor.noAds },
             { label: 'Tournament', win: !competitor.tournamentMode },
@@ -160,7 +160,7 @@ export function CompareHub() {
         {/* Why SpinPick banner */}
         <div className={styles.featureGrid}>
           {[
-            { icon: <Sparkles size={18} aria-hidden="true" />, title: 'AI-Powered', text: 'OpenRouter or keyword-based templates produce options and decision reasoning' },
+            { icon: <Sparkles size={18} aria-hidden="true" />, title: 'Smart Options', text: 'OpenRouter proxy or keyword-based templates produce options and decision reasoning' },
             { icon: <Shield size={18} aria-hidden="true" />, title: '100% Free', text: 'No ads, no account, no premium tier — ever' },
             { icon: <Zap size={18} aria-hidden="true" />, title: 'Tournament Mode', text: 'Head-to-head elimination brackets built-in' },
             { icon: <Check size={18} aria-hidden="true" />, title: 'Decision History', text: 'Full log of past spins with timestamps and reasoning' },
@@ -192,7 +192,7 @@ export function CompareHub() {
           <Link to="/" className="text-secondary font-bold no-underline">
             ← Back to SpinPick
           </Link>
-          <span>© {new Date().getFullYear()} SpinPick · AI Decision Studio</span>
+          <span>© {new Date().getFullYear()} SpinPick · Decision Studio</span>
         </div>
       </footer>
     </div>

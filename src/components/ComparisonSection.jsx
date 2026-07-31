@@ -23,7 +23,7 @@ export function ComparisonSection() {
     },
     {
       feature: 'Decision Follow-Through',
-      spinpick: 'AI reasoning + 3 immediate execution action steps',
+      spinpick: 'Smart rationale + 3 immediate execution action steps',
       others: 'Static text pop-up with zero guidance',
       highlight: false
     },

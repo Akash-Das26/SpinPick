@@ -237,7 +237,7 @@ export function ComparisonPage() {
           {/* ── CTA ── */}
           <CTABanner
             heading={`Try SpinPick — the smarter ${competitor.name} alternative`}
-            subheading={`Free, ad-free, AI-powered, no account needed. See for yourself why SpinPick is the modern upgrade.`}
+            subheading={`Free, ad-free, keyword-boosted, no account needed. See for yourself why SpinPick is the modern upgrade.`}
           />
           </div>
         </article>

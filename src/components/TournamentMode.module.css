@@ -127,3 +127,186 @@
 .vsText {
   font-weight: 400;
 }
+
+/* Visual Bracket Tree */
+.bracketTree {
+  margin-top: 24px;
+  padding: 24px;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+}
+
+.bracketTree__rounds {
+  display: flex;
+  flex-direction: row;
+  gap: 32px;
+  align-items: center;
+  justify-content: center;
+  min-width: max-content;
+}
+
+.bracketTree__round {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.bracketTree__roundLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent-lime);
+  margin-bottom: 8px;
+  white-space: nowrap;
+}
+
+.bracketTree__match {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 180px;
+  position: relative;
+}
+
+.bracketTree__match--active .bracketTree__player--p1,
+.bracketTree__match--active .bracketTree__player--p2 {
+  border-color: var(--accent-lime);
+  background: rgba(216, 255, 91, 0.1);
+}
+
+.bracketTree__match--winner .bracketTree__player--winner {
+  border-color: var(--accent-lime);
+  background: rgba(216, 255, 91, 0.15);
+  box-shadow: 0 0 12px rgba(216, 255, 91, 0.3);
+}
+
+.bracketTree__player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  transition: all var(--transition-fast);
+  min-width: 160px;
+  text-align: center;
+}
+
+.bracketTree__player--p1 {
+  margin-bottom: 4px;
+}
+
+.bracketTree__player--p2 {
+  margin-top: 4px;
+}
+
+.bracketTree__player--winner {
+  border-color: var(--accent-lime);
+  background: rgba(216, 255, 91, 0.12);
+}
+
+.bracketTree__playerLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.bracketTree__playerName {
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+.bracketTree__connector {
+  position: absolute;
+  right: -16px;
+  top: 50%;
+  width: 32px;
+  height: 2px;
+  background: var(--border-subtle);
+}
+
+.bracketTree__connector--vertical {
+  position: absolute;
+  right: -16px;
+  top: 50%;
+  width: 2px;
+  height: 100%;
+  background: var(--border-subtle);
+}
+
+.bracketTree__connector--winner {
+  background: var(--accent-lime);
+}
+
+.bracketTree__winnerBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--accent-lime);
+  color: var(--text-inverse);
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 4px;
+}
+
+/* Responsive bracket tree */
+@media (max-width: 768px) {
+  .bracketTree__rounds {
+    gap: 24px;
+  }
+  
+  .bracketTree__match {
+    min-width: 140px;
+  }
+  
+  .bracketTree__player {
+    min-width: 130px;
+    padding: 8px 10px;
+  }
+  
+  .bracketTree__connector {
+    right: -12px;
+    width: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .bracketTree {
+    padding: 16px;
+  }
+  
+  .bracketTree__rounds {
+    gap: 16px;
+  }
+  
+  .bracketTree__match {
+    min-width: 120px;
+  }
+  
+  .bracketTree__player {
+    min-width: 110px;
+    padding: 6px 8px;
+  }
+  
+  .bracketTree__connector {
+    right: -8px;
+    width: 16px;
+  }
+}
