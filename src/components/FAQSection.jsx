@@ -24,7 +24,7 @@ export function FAQSection({ faqs }) {
   return (
     <section
       aria-label="Frequently asked questions"
-      className={styles.root}
+      className={styles.faqSection__root}
     >
       {/* Inject JSON-LD */}
       <script
@@ -32,7 +32,7 @@ export function FAQSection({ faqs }) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <h2 className={`${styles.heading} font-display font-extrabold text-primary mb-32`}>
+      <h2 className={`${styles.faqSection__heading} font-display font-extrabold text-primary mb-32`}>
         Frequently Asked Questions
       </h2>
 
@@ -42,25 +42,25 @@ export function FAQSection({ faqs }) {
           return (
             <div
               key={idx}
-              className={`${styles.item} ${isOpen ? styles.itemOpen : ''}`}
+              className={`${styles.faqSection__item} ${isOpen ? styles['faqSection__item--open'] : ''}`}
             >
               <button
                 id={`faq-question-${idx}`}
                 aria-controls={`faq-answer-${idx}`}
                 onClick={() => setOpenIdx(isOpen ? null : idx)}
                 aria-expanded={isOpen}
-                className={styles.question}
+                className={styles.faqSection__question}
               >
                 <span>{faq.q}</span>
                 <ChevronDown
                   size={18}
                   aria-hidden="true"
-                  className={`${styles.icon} text-accent-lime ${isOpen ? styles.iconOpen : ''}`}
+                  className={`${styles.faqSection__icon} text-accent-lime ${isOpen ? styles['faqSection__icon--open'] : ''}`}
                 />
               </button>
 
               {isOpen && (
-                <div id={`faq-answer-${idx}`} role="region" aria-labelledby={`faq-question-${idx}`} className={styles.answer}>
+                <div id={`faq-answer-${idx}`} role="region" aria-labelledby={`faq-question-${idx}`} className={styles.faqSection__answer}>
                   {faq.a}
                 </div>
               )}
