@@ -1,32 +1,35 @@
-.root {
+.custom-builder {
+}
+
+.custom-builder__root {
   animation: fadeIn 0.3s ease-out;
   max-width: 800px;
 }
 
-.panel {
+.custom-builder__panel {
   padding: 2rem;
 }
 
-.sectionHeader {
+.custom-builder__section-header {
   margin-bottom: 1.5rem;
 }
 
-.sectionTitle {
+.custom-builder__section-title {
   font-size: 1.8rem;
 }
 
-.metaGrid {
+.custom-builder__meta-grid {
   display: grid;
   gap: 1rem;
   margin-bottom: 1.5rem;
   grid-template-columns: 2fr 1fr;
 }
 
-.itemLabel {
+.custom-builder__item-label {
   font-size: 1rem;
 }
 
-.sliceRow {
+.custom-builder__slice-row {
   display: flex;
   align-items: center;
   gap: 1.5rem;
@@ -36,18 +39,18 @@
   padding: 1rem;
 }
 
-.colorInput {
+.custom-builder__color-input {
   width: 28px;
   height: 28px;
   border-radius: 9999px;
 }
 
-.weightInput {
+.custom-builder__weight-input {
   width: 50px;
   border-radius: 4px;
 }
 
-.actions {
+.custom-builder__actions {
   display: flex;
   justify-content: flex-end;
   align-items: center;
@@ -55,7 +58,7 @@
   flex-wrap: wrap;
 }
 
-.successHint {
+.custom-builder__success-hint {
   color: var(--text-secondary);
   font-size: 0.8rem;
 }

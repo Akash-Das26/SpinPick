@@ -68,14 +68,14 @@ export function CustomBuilder({ onLoadCustomWheel }) {
   };
 
   return (
-    <div className={`${styles.root} mx-auto`}>
-      <div className={`${styles.panel} glass-panel p-32`}>
+    <div className={`${styles.customBuilder__root} mx-auto`}>
+      <div className={`${styles.customBuilder__panel} glass-panel p-32`}>
         
-        <div className={styles.sectionHeader}>
+        <div className={styles.customBuilder__sectionHeader}>
           <span className="mono text-xs text-lime uppercase tracking-wider font-bold">
             CUSTOM BUILDER
           </span>
-          <h2 className={`${styles.sectionTitle} mt-4 font-extrabold`}>
+          <h2 className={`${styles.customBuilder__sectionTitle} mt-4 font-extrabold`}>
             Custom Builder
           </h2>
           <p className="text-muted text-base">
@@ -87,7 +87,7 @@ export function CustomBuilder({ onLoadCustomWheel }) {
         </div>
 
         {/* Wheel Meta Inputs */}
-        <div className={`${styles.metaGrid} mb-24`}>
+        <div className={`${styles.customBuilder__metaGrid} mb-24`}>
           <div>
             <label htmlFor="custom-wheel-title" className="block font-bold mb-6 text-sm">
               Wheel Title / Decision Prompt
@@ -125,7 +125,7 @@ export function CustomBuilder({ onLoadCustomWheel }) {
         {/* Slices Matrix */}
         <div className="mb-24">
           <div className="flex justify-between items-center mb-12">
-            <h4 className={`${styles.itemLabel} font-bold`}>Wheel Slices ({items.length})</h4>
+            <h4 className={`${styles.customBuilder__itemLabel} font-bold`}>Wheel Slices ({items.length})</h4>
             <button className="btn btn-secondary btn-sm" onClick={handleAddItem} aria-label="Add new wheel slice">
               <Plus size={15} aria-hidden="true" />
               Add Slice
@@ -136,14 +136,14 @@ export function CustomBuilder({ onLoadCustomWheel }) {
             {items.map((item, idx) => (
               <div 
                 key={item.id}
-                className={`${styles.sliceRow}`}
+                className={`${styles.customBuilder__sliceRow}`}
               >
                 <input 
                   type="color"
                   value={item.color}
                   onChange={(e) => handleItemChange(item.id, 'color', e.target.value)}
                   aria-label={`Color for slice ${idx + 1}`}
-                  className={`${styles.colorInput} rounded-full border-none bg-none pointer`}
+                  className={`${styles.customBuilder__colorInput} rounded-full border-none bg-none pointer`}
                   title={`Choose a color for slice ${idx + 1}`}
                 />
 
@@ -165,7 +165,7 @@ export function CustomBuilder({ onLoadCustomWheel }) {
                     value={item.weight}
                     onChange={(e) => handleItemChange(item.id, 'weight', Math.max(1, parseInt(e.target.value) || 1))}
                     aria-label={`Weight for slice ${idx + 1}`}
-                    className={`${styles.weightInput} bg-surface-2 border-subtle text-primary text-center px-6 py-4`}
+                    className={`${styles.customBuilder__weightInput} bg-surface-2 border-subtle text-primary text-center px-6 py-4`}
                   />
                 </div>
 
@@ -182,12 +182,12 @@ export function CustomBuilder({ onLoadCustomWheel }) {
         </div>
 
         {/* Launch Button */}
-        <div className={`${styles.actions}`}>
+        <div className={`${styles.customBuilder__actions}`}>
           <button className="btn btn-primary btn-lg" onClick={handleLaunch}>
             {savedSuccess ? <Check size={18} aria-hidden="true" /> : <Sparkles size={18} aria-hidden="true" />}
             {savedSuccess ? 'Saved and launching…' : 'Save & Launch Wheel in Studio'}
           </button>
-          {savedSuccess && <span className={styles.successHint}>Wheel saved locally and opening in the studio.</span>}
+          {savedSuccess && <span className={styles.customBuilder__successHint}>Wheel saved locally and opening in the studio.</span>}
         </div>
 
       </div>
