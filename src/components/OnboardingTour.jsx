@@ -88,31 +88,31 @@ export function OnboardingTour({ isOpen, onDismiss }) {
       role="dialog"
       aria-modal="true"
       aria-label="SpinPick onboarding tour"
-      className={`${styles.overlay} fixed grid-center p-20 backdrop-blur-sm`}
+      className={`${styles.onboardingTour__overlay} fixed grid-center p-20 backdrop-blur-sm`}
     >
-      <div onClick={onDismiss} className={styles.overlayBackdrop} aria-hidden="true" />
+      <div onClick={onDismiss} className={styles.onboardingTour__overlayBackdrop} aria-hidden="true" />
 
-      <div ref={cardRef} className={`glass-panel relative w-full z-1 ${styles.card}`} role="document">
+      <div ref={cardRef} className={`glass-panel relative w-full z-1 ${styles.onboardingTour__card}`} role="document">
         <button
-          className={`btn btn-ghost btn-sm absolute p-6 text-muted ${styles.closeButton}`}
+          className={`btn btn-ghost btn-sm absolute p-6 text-muted ${styles.onboardingTour__closeButton}`}
           onClick={onDismiss}
           aria-label="Skip tour"
         >
           <X size={18} aria-hidden="true" />
         </button>
 
-        <div className={`flex gap-6 mb-20 ${styles.progressRow}`} aria-hidden="true">
+        <div className={`flex gap-6 mb-20 ${styles.onboardingTour__progressRow}`} aria-hidden="true">
           {STEPS.map((_, i) => (
             <div
               key={i}
-              className={`${styles.progressDot} ${i <= step ? styles.progressDotActive : ''}`}
+              className={`${styles.onboardingTour__progressDot} ${i <= step ? styles.onboardingTour__progressDotActive : ''}`}
             />
           ))}
         </div>
 
         <div className="text-center">
           <div
-            className={`${styles.stepIcon} grid-center mx-auto mb-16`}
+            className={`${styles.onboardingTour__stepIcon} grid-center mx-auto mb-16`}
             style={{
               '--step-bg': current.bgColor,
               '--step-color': current.color,
@@ -125,11 +125,11 @@ export function OnboardingTour({ isOpen, onDismiss }) {
             Step {step + 1} of {STEPS.length}
           </span>
 
-          <h2 className={`font-black mt-6 mb-10 text-xl ${styles.title}`}>{current.title}</h2>
-          <p className={`text-secondary mx-auto mb-28 text-base ${styles.description}`}>{current.description}</p>
+          <h2 className={`font-black mt-6 ${styles.onboardingTour__title}`}>{current.title}</h2>
+          <p className={`text-secondary mx-auto mb-28 text-base ${styles.onboardingTour__description}`}>{current.description}</p>
         </div>
 
-        <div className={`flex justify-between items-center gap-12 ${styles.footerRow}`}>
+        <div className={`flex justify-between items-center gap-12 ${styles.onboardingTour__footerRow}`}>
           {step > 0 ? (
             <button className="btn btn-ghost btn-sm flex items-center gap-6" onClick={handlePrev} aria-label="Previous step">
               <ArrowLeft size={15} aria-hidden="true" />
@@ -145,7 +145,7 @@ export function OnboardingTour({ isOpen, onDismiss }) {
                 key={i}
                 onClick={() => setStep(i)}
                 aria-label={`Go to step ${i + 1}`}
-                className={`${styles.dotButton} ${i === step ? styles.dotButtonActive : ''}`}
+                className={`${styles.onboardingTour__dotButton} ${i === step ? styles.onboardingTour__dotButtonActive : ''}`}
               />
             ))}
           </div>
@@ -171,7 +171,7 @@ export function OnboardingTour({ isOpen, onDismiss }) {
 
         {step === 0 && (
           <div className="text-center mt-14">
-            <button className={`btn btn-ghost text-muted ${styles.skipButton}`} onClick={onDismiss} aria-label="Skip the tour">
+            <button className={`btn btn-ghost text-muted ${styles.onboardingTour__skipButton}`} onClick={onDismiss} aria-label="Skip the tour">
               Skip tour
             </button>
           </div>
