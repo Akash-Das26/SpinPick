@@ -1,10 +1,10 @@
-.root {
+.footer {
   margin-top: 80px;
   border-top: 1px solid var(--border-subtle);
   padding: 40px 0;
 }
 
-.footerTop {
+.footer__top {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
@@ -12,13 +12,13 @@
   gap: 1rem;
 }
 
-.logoArea {
+.footer__logo-area {
   display: flex;
   align-items: center;
   gap: 0.625rem;
 }
 
-.logoBubble {
+.footer__logo-bubble {
   display: grid;
   place-items: center;
   width: 24px;
@@ -27,13 +27,13 @@
   background: var(--accent-gradient);
 }
 
-.brandText {
+.footer__brand-text {
   font-weight: 700;
   color: var(--text-primary);
   font-family: var(--font-display);
 }
 
-.versionBadge {
+.footer__version-badge {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -44,7 +44,7 @@
   border: 1px solid var(--border-subtle);
 }
 
-.navLinks {
+.footer__nav-links {
   display: flex;
   flex-wrap: wrap;
   gap: 1.25rem;

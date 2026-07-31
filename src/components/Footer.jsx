@@ -5,17 +5,17 @@ import styles from './Footer.module.css';
 
 export function Footer({ hasOpenRouterProxy }) {
   return (
-    <footer className={`${styles.root} text-muted text-sm`}>
+    <footer className={`${styles.footer} text-muted text-sm`}>
       <div className="container flex-col gap-20">
-        <div className={`${styles.footerTop}`}>
-          <div className={`${styles.logoArea}`}>
-            <div className={`${styles.logoBubble} grid-center`}>
+        <div className={styles.footer__top}>
+          <div className={styles.footer__logoArea}>
+            <div className={`${styles.footer__logoBubble} grid-center`}>
               <Disc size={14} color="#07070d" aria-hidden="true" />
             </div>
-            <span className={styles.brandText}>
+            <span className={styles.footer__brandText}>
               SpinPick Decision Studio
             </span>
-            <span className={styles.versionBadge}>© {new Date().getFullYear()} · v{__APP_VERSION__}</span>
+            <span className={styles.footer__versionBadge}>© {new Date().getFullYear()} · v{__APP_VERSION__}</span>
           </div>
 
           <div className="flex gap-20 items-center">
@@ -26,7 +26,7 @@ export function Footer({ hasOpenRouterProxy }) {
         </div>
 
         {/* nav links */}
-        <div className={styles.navLinks}>
+        <div className={styles.footer__navLinks}>
           <Link to="/" className="text-muted no-underline">Home</Link>
           <Link to="/compare" className="text-muted no-underline">Compare Alternatives</Link>
           <Link to="/compare/wheel-of-names" className="text-muted no-underline">vs Wheel of Names</Link>
