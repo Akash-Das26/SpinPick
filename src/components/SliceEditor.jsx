@@ -113,14 +113,14 @@ export function SliceEditor({ isOpen, onClose, options, setOptions }) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="slice-editor-title"
-      className={`${styles.overlay} grid-center`}
+      className={`${styles.sliceEditor__overlay} grid-center`}
     >
-      <div ref={modalRef} className={`glass-panel flex-col overflow-hidden ${styles.modal}`}>
+      <div ref={modalRef} className={`glass-panel flex-col overflow-hidden ${styles.sliceEditor__modal}`}>
         
         {/* Modal Header */}
         <div className="flex justify-between items-center px-24 py-20 border-bottom">
           <div>
-            <h3 id="slice-editor-title" className={`font-extrabold ${styles.title}`}>Customize Wheel Slices</h3>
+            <h3 id="slice-editor-title" className={`font-extrabold ${styles.sliceEditor__title}`}>Customize Wheel Slices</h3>
             <p className="text-sm text-muted">Adjust option titles, weights, and slice colors</p>
           </div>
           <button className="btn btn-ghost btn-sm" onClick={onClose} aria-label="Close slice editor">
@@ -129,7 +129,7 @@ export function SliceEditor({ isOpen, onClose, options, setOptions }) {
         </div>
 
         {/* Add New Option Form */}
-        <form onSubmit={handleAddOption} className="flex gap-10 px-24 py-16 border-bottom">
+        <form onSubmit={handleAddOption} className={`${styles.sliceEditor__formRow} flex gap-10 px-24 py-16 border-bottom`}>
           <input 
             type="text" 
             placeholder="Type a new choice..." 
@@ -144,11 +144,11 @@ export function SliceEditor({ isOpen, onClose, options, setOptions }) {
         </form>
 
         {/* Slice List */}
-        <div className="flex-1 overflow-y-auto flex-col gap-10 px-24 py-16">
+        <div className={`${styles.sliceEditor__optionList} flex-1 overflow-y-auto flex-col gap-10 px-24 py-16`}>
           {options.map((opt, idx) => (
             <div 
               key={opt.id}
-              className={styles.optionItem}
+              className={styles.sliceEditor__optionItem}
             >
               {/* Color picker dot */}
               <input 
