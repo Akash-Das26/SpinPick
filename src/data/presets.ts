@@ -1,24 +1,42 @@
+import type { LucideIcon } from 'lucide-react';
 import { Utensils, Plane, Code, Film } from '../lib/icons';
 
-export const QUICK_CHIPS = [
+export interface PresetOption {
+  id: string;
+  label: string;
+  desc: string;
+  weight: number;
+  color: string;
+}
+
+export interface Preset {
+  id: string;
+  title: string;
+  category: string;
+  icon: LucideIcon;
+  desc: string;
+  options: PresetOption[];
+}
+
+export const QUICK_CHIPS: readonly string[] = [
   "What should I cook for dinner?",
   "Where to travel next weekend?",
   "Which side project to build?",
   "Pick a movie for tonight",
-  "What song to play on repeat?"
-];
+  "What song to play on repeat?",
+] as const;
 
-export const SURPRISE_PROMPTS = [
+export const SURPRISE_PROMPTS: readonly string[] = [
   "What should I cook for dinner tonight?",
   "Where should I travel next weekend?",
   "Which side project should I ship tonight?",
   "Pick a movie for tonight",
   "What workout routine should I do today?",
   "What book should I read next?",
-  "Which technology stack should I choose for my new app?"
-];
+  "Which technology stack should I choose for my new app?",
+] as const;
 
-export const PRESET_GALLERY = [
+export const PRESET_GALLERY: readonly Preset[] = [
   {
     id: 'preset-dinner',
     title: 'The Ultimate Dinner Contender',
@@ -76,4 +94,4 @@ export const PRESET_GALLERY = [
       { id: 'm5', label: 'Epic Historical Action Saga', desc: 'Breathtaking battles and orchestral score', weight: 1, color: '#ffb86c' }
     ]
   }
-];
+] as const;

@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Dispatch, SetStateAction } from 'react';
 
 /**
  * Reusable React hook for synchronizing state with LocalStorage safely.
  * Handles SSR by deferring localStorage access until client-side hydration.
  */
-export function useLocalStorage(key, initialValue) {
-  const [value, setValue] = useState(() => {
+export function useLocalStorage<T>(key: string, initialValue: T): [T, Dispatch<SetStateAction<T>>] {
+  const [value, setValue] = useState<T>(() => {
     if (typeof window === 'undefined') {
       return initialValue;
     }

@@ -5,9 +5,17 @@
    Adding/removing a tab here keeps both in sync automatically.
    ========================================================================== */
 
+import type { LucideIcon } from 'lucide-react';
 import { LayoutGrid, Swords, PlusCircle, Compass, History } from '../lib/icons';
 
-export const TABS = [
+export interface Tab {
+  id: string;
+  icon: LucideIcon;
+  label: string;
+  tour: string;
+}
+
+export const TABS: readonly Tab[] = [
   {
     id: 'studio',
     icon: LayoutGrid,
@@ -38,4 +46,4 @@ export const TABS = [
     label: 'History',
     tour: 'Review your past decisions and re-open them.',
   },
-];
+] as const;

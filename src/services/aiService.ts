@@ -17,10 +17,43 @@ export const COLOR_SCHEMES = {
   sunset: ['#ff4d6d', '#ff9f43', '#ffb86c', '#ffd166', '#d8ff5b', '#a3ff12', '#38ef7d', '#00f2fe'],
   emerald: ['#38ef7d', '#11998e', '#a3ff12', '#d8ff5b', '#00f2fe', '#ffb86c', '#ff4d6d', '#b56cff'],
   neon: ['#b56cff', '#ff52d9', '#00f2fe', '#d8ff5b', '#a3ff12', '#38ef7d', '#ffb86c', '#ff4d6d']
-};
+} as const;
+
+export interface WheelOption {
+  id: string;
+  label: string;
+  desc: string;
+  weight: number;
+  color: string;
+}
+
+export interface WheelResult {
+  options: WheelOption[];
+  winnerIndex: number;
+  reasoning: string;
+  actionSteps: string[];
+  isSensitive: boolean;
+  source: string;
+}
+
+interface OpenRouterConfig {
+  modelName?: string;
+  optionCount?: number;
+}
+
+interface ParsedOpenRouterResponse {
+  options: Array<{
+    label: string;
+    desc: string;
+    weight: number;
+  }>;
+  recommendedIndex: number;
+  reasoning: string;
+  actionSteps: string[];
+}
 
 // Cryptographically fair Fisher-Yates array shuffle
-function secureShuffle(array) {
+function secureShuffle<T>(array: T[]): T[] {
   const result = [...array];
   const randArr = new Uint32Array(result.length);
   crypto.getRandomValues(randArr);
@@ -33,7 +66,7 @@ function secureShuffle(array) {
 }
 
 // Cryptographically secure integer picker in [0, max)
-function secureRandomInt(max) {
+function secureRandomInt(max: number): number {
   if (max <= 0) return 0;
   const rand = new Uint32Array(1);
   crypto.getRandomValues(rand);
@@ -41,7 +74,7 @@ function secureRandomInt(max) {
 }
 
 // Sensitive advice detector
-function checkDisclaimerNeeded(prompt) {
+function checkDisclaimerNeeded(prompt: string): boolean {
   const q = prompt.toLowerCase();
   const keywords = [
     'invest', 'stock', 'crypto', 'bitcoin', 'tax', 'money', 'budget', 'loan', 'finance', 'trading',
@@ -103,7 +136,15 @@ const KNOWLEDGE_BASE = {
   }
 };
 
-function buildOpenRouterMessages(prompt, optionCount) {
+interface OpenRouterResponse {
+  choices: Array<{
+    message: {
+      content: string;
+    };
+  }>;
+}
+
+function buildOpenRouterMessages(prompt: string, optionCount: number): Array<{ role: string; content: string }> {
   const systemPrompt = `You are SpinPick AI, a sharp, creative decision assistant.
 Given a user prompt: "${prompt}", generate exactly ${optionCount} distinct, high-quality, creative choices for the wheel.
 Also select the best single choice as the recommended winner, and explain WHY it's ideal right now with 3 actionable next steps.
@@ -128,12 +169,12 @@ Return strictly valid JSON with no markdown formatting:
 }
 
 // Parse + validate the OpenAI-compatible chat completion response
-async function parseOpenRouterResponse(response, sourceLabel) {
+async function parseOpenRouterResponse(response: Response, sourceLabel: string): Promise<ParsedOpenRouterResponse> {
   if (!response.ok) {
     const error = await response.text();
     throw new Error(`${sourceLabel} error: ${response.status} - ${error}`);
   }
-  const data = await response.json();
+  const data: OpenRouterResponse = await response.json();
   const rawText = data.choices[0]?.message?.content;
   if (!rawText) throw new Error('Empty response from OpenRouter');
 
@@ -144,8 +185,19 @@ async function parseOpenRouterResponse(response, sourceLabel) {
   return JSON.parse(cleanText);
 }
 
+interface ParsedOpenRouterResponse {
+  options: Array<{
+    label: string;
+    desc: string;
+    weight: number;
+  }>;
+  recommendedIndex: number;
+  reasoning: string;
+  actionSteps: string[];
+}
+
 // Route the request through the server-side proxy — no key leaves the server
-async function callOpenRouterProxy(modelName, prompt, optionCount) {
+async function callOpenRouterProxy(modelName: string, prompt: string, optionCount: number): Promise<ParsedOpenRouterResponse> {
   const body = {
     model: modelName,
     messages: buildOpenRouterMessages(prompt, optionCount),
@@ -162,7 +214,7 @@ async function callOpenRouterProxy(modelName, prompt, optionCount) {
 }
 
 // Format a validated AI response into wheel options + verdict
-function formatAiResult(parsed, isSensitive, source) {
+function formatAiResult(parsed: ParsedOpenRouterResponse, isSensitive: boolean, source: string): WheelResult {
   const colors = COLOR_SCHEMES.electric;
   const optionsWithColor = parsed.options.map((opt, i) => ({
     id: `opt-${i}-${Date.now()}`,
@@ -186,7 +238,7 @@ export const aiService = {
   /**
    * Generate decision options from a user prompt
    */
-  generateWheelOptions: async (prompt, config = {}) => {
+  generateWheelOptions: async (prompt: string, config: OpenRouterConfig = {}): Promise<WheelResult> => {
     const { modelName = 'openrouter/auto', optionCount = 8 } = config;
     const isSensitive = checkDisclaimerNeeded(prompt);
 
@@ -206,7 +258,7 @@ export const aiService = {
 
     // Offline fallback generation
     const q = prompt.toLowerCase();
-    let rawOptions = [];
+    let rawOptions: Array<{ label: string; desc: string }> = [];
 
     if (q.includes('cook') || q.includes('eat') || q.includes('dinner') || q.includes('food') || q.includes('lunch')) {
       rawOptions = KNOWLEDGE_BASE.food.dinner;

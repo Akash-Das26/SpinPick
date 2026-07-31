@@ -1,14 +1,22 @@
 import { useEffect, useCallback } from 'react';
 
+interface UseKeyboardShortcutsOptions {
+  onSpin?: () => void;
+  onTour?: () => void;
+  setActiveTab: (tab: string) => void;
+  isSpinning: boolean;
+}
+
 export function useKeyboardShortcuts({ 
   onSpin, 
   onTour, 
   setActiveTab,
   isSpinning 
-}) {
-  const handleKey = useCallback((e) => {
+}: UseKeyboardShortcutsOptions) {
+  const handleKey = useCallback((e: KeyboardEvent) => {
+    const target = e.target as HTMLElement | null;
     // Ignore if typing in input, textarea, or select
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+    if (target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA' || target?.tagName === 'SELECT') return;
     // Ignore if a modal is open
     if (document.querySelector('[role="dialog"]')) return;
     
