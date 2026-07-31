@@ -329,9 +329,9 @@ export function ExporterModal({ isOpen, onClose, currentPrompt, options, setOpti
       role="dialog"
       aria-modal="true"
       aria-labelledby="exporter-modal-title"
-      className={`${styles.overlay} grid-center`}
+      className={`${styles.exporterModal__overlay} grid-center`}
     >
-      <div ref={modalRef} className={`glass-panel p-28 w-full ${styles.modal}`}>
+      <div ref={modalRef} className={`glass-panel p-28 w-full ${styles.exporterModal__modal}`}>
         
         {/* Header */}
         <div className="flex justify-between items-center mb-20">
@@ -358,7 +358,7 @@ export function ExporterModal({ isOpen, onClose, currentPrompt, options, setOpti
             <div className="flex items-center gap-10">
               <Image size={20} color="var(--accent-lime)" aria-hidden="true" />
               <div>
-                <h4 className={`font-extrabold ${styles.headingSmall}`}>High-Res PNG Image Snapshot</h4>
+                <h4 className={`font-extrabold ${styles.exporterModal__headingSmall}`}>High-Res PNG Image Snapshot</h4>
                 <p className="text-sm text-muted">Crisp 1200x1200px graphics with an optional verdict banner</p>
               </div>
             </div>
@@ -370,7 +370,7 @@ export function ExporterModal({ isOpen, onClose, currentPrompt, options, setOpti
         </div>
 
         {/* Bulk Data Formats */}
-        <div className={`${styles.bulkGrid} mb-20`}>
+        <div className={`${styles.exporterModal__bulkGrid} mb-20`}>
           <div className="bg-surface border-subtle rounded-md p-16">
             <FileSpreadsheet size={20} color="var(--accent-cyan)" className="mb-8" aria-hidden="true" />
             <h4 className={`font-extrabold ${styles.headingSmall}`}>CSV Spreadsheet</h4>
@@ -403,11 +403,11 @@ export function ExporterModal({ isOpen, onClose, currentPrompt, options, setOpti
         </div>
 
         {/* Import feedback */}
-        {importMessage && (
-          <div
-            role="status"
-            className={`${styles.feedback} ${importMessage.type === 'success' ? styles.success : styles.error}`}
-          >
+{importMessage && (
+            <div
+              role="status"
+              className={`${styles.exporterModal__feedback} ${importMessage.type === 'success' ? styles.exporterModal__feedbackSuccess : styles.exporterModal__feedbackError}`}
+            >
             {importMessage.type === 'success' ? <Check size={14} className="mr-6" /> : null}
             {importMessage.text}
           </div>
@@ -427,7 +427,7 @@ export function ExporterModal({ isOpen, onClose, currentPrompt, options, setOpti
               type="file" 
               accept=".csv,.json"
               onChange={handleFileUpload}
-              className={`w-full text-primary bg-surface-2 pointer rounded-sm text-sm px-14 py-10 ${styles.fileInput}`}
+              className={`w-full text-primary bg-surface-2 pointer rounded-sm text-sm px-14 py-10 ${styles.exporterModal__fileInput}`}
             />
           </div>
         </div>
