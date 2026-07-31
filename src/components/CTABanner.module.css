@@ -1,4 +1,4 @@
-.wrapper {
+.cta-banner {
   position: relative;
   overflow: hidden;
   text-align: center;
@@ -9,13 +9,13 @@
   padding: clamp(32px, 5vw, 60px);
 }
 
-.glowBlob {
+.cta-banner__glow-blob {
   position: absolute;
   pointer-events: none;
   border-radius: 50%;
 }
 
-.glowBlobTop {
+.cta-banner__glow-blob--top {
   top: -40px;
   right: -40px;
   width: 220px;
@@ -23,7 +23,7 @@
   background: radial-gradient(circle, rgba(216, 255, 91, 0.15) 0%, transparent 70%);
 }
 
-.glowBlobBottom {
+.cta-banner__glow-blob--bottom {
   bottom: -30px;
   left: -30px;
   width: 160px;
@@ -31,12 +31,12 @@
   background: radial-gradient(circle, rgba(0, 242, 254, 0.1) 0%, transparent 70%);
 }
 
-.content {
+.cta-banner__content {
   position: relative;
   z-index: 1;
 }
 
-.badge {
+.cta-banner__badge {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -52,19 +52,19 @@
   border: 1px solid rgba(216, 255, 91, 0.25);
 }
 
-.heading {
+.cta-banner__heading {
   margin-bottom: 1rem;
   font-size: clamp(1.6rem, 4vw, 2.4rem);
 }
 
-.copy {
+.cta-banner__copy {
   margin: 0 auto 2rem;
   max-width: 520px;
   font-size: clamp(0.95rem, 2vw, 1.1rem);
   line-height: 1.6;
 }
 
-.ctaButton {
+.cta-banner__cta-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -80,13 +80,13 @@
   box-shadow: var(--shadow-glow);
 }
 
-.ctaButton:hover,
-.ctaButton:focus-visible {
+.cta-banner__cta-button:hover,
+.cta-banner__cta-button:focus-visible {
   transform: translateY(-2px);
   box-shadow: 0 0 50px -10px rgba(216, 255, 91, 0.6);
 }
 
-.smallText {
+.cta-banner__small-text {
   margin-top: 0.875rem;
   color: var(--text-muted);
   font-size: 0.75rem;
