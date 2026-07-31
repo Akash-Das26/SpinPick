@@ -4,39 +4,39 @@ import styles from './DiscoverGallery.module.css';
 
 export function DiscoverGallery({ onSelectPreset }) {
   return (
-    <div className={styles.fadeIn}>
-      <div className={styles.sectionHeading}>
+    <div className={styles.discoverGallery}>
+      <div className={styles.discoverGallery__sectionHeading}>
         <span className="mono text-sm text-lime font-bold tracking-wider uppercase">
           DISCOVER
         </span>
-        <h2 className={`${styles.title} font-black mt-6`}>
+        <h2 className={`${styles.discoverGallery__title} font-black mt-6`}>
           Discover
         </h2>
-        <p className={`${styles.copy} text-muted mx-auto mt-8`}>
+        <p className={`${styles.discoverGallery__copy} text-muted mx-auto mt-8`}>
           Select any curated template to load it instantly into your studio workspace.
         </p>
       </div>
 
-      <div className={styles.grid}>
+      <div className={styles.discoverGallery__grid}>
         {PRESET_GALLERY.map((preset) => {
           const IconComp = preset.icon || Sparkles;
           return (
-            <div key={preset.id} className={`${styles.card} glass-panel`}>
+            <div key={preset.id} className={`${styles.discoverGallery__card} glass-panel`}>
               <div>
-                <div className={`${styles.cardHeader} mb-16`}>
-                  <div className={`${styles.cardIcon} text-lime`}>
+                <div className={`${styles.discoverGallery__cardHeader} mb-16`}>
+                  <div className={`${styles.discoverGallery__cardIcon} text-lime`}>
                     <IconComp size={22} aria-hidden="true" />
                   </div>
-                  <span className={`${styles.categoryTag} mono text-xs text-muted`}>{preset.category}</span>
+                  <span className={`${styles.discoverGallery__categoryTag} mono text-xs text-muted`}>{preset.category}</span>
                 </div>
 
-                <h3 className={`${styles.cardTitle} font-extrabold mb-8`}>{preset.title}</h3>
-                <p className={`${styles.cardText} text-muted mb-16`}>{preset.desc}</p>
+                <h3 className={`${styles.discoverGallery__cardTitle} font-extrabold mb-8`}>{preset.title}</h3>
+                <p className={`${styles.discoverGallery__cardText} text-muted mb-16`}>{preset.desc}</p>
 
-                <div className={styles.previewLabel}>Quick preview</div>
-                <div className={styles.tags}>
+                <div className={styles.discoverGallery__previewLabel}>Quick preview</div>
+                <div className={styles.discoverGallery__tags}>
                   {preset.options.slice(0, 4).map((opt) => (
-                    <span key={opt.id} className={styles.tag}>
+                    <span key={opt.id} className={styles.discoverGallery__tag}>
                       {opt.label}
                     </span>
                   ))}

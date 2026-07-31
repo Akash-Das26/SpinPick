@@ -1,18 +1,17 @@
-.fadeIn {
-  animation: fadeIn 0.3s ease-out;
+.discover-gallery {
 }
 
-.sectionHeading {
+.discover-gallery__section-heading {
   margin-bottom: 2.25rem;
   text-align: center;
 }
 
-.title {
+.discover-gallery__title {
   margin-top: 1rem;
   font-size: 2.2rem;
 }
 
-.copy {
+.discover-gallery__copy {
   margin-top: 2rem;
   max-width: 600px;
   margin-left: auto;
@@ -20,13 +19,13 @@
   font-size: 1rem;
 }
 
-.grid {
+.discover-gallery__grid {
   display: grid;
   gap: 1.25rem;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 }
 
-.card {
+.discover-gallery__card {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -38,20 +37,20 @@
   transition: border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.card:hover {
+.discover-gallery__card:hover {
   border-color: var(--border-glow);
   transform: translateY(-2px);
   box-shadow: var(--shadow-sm);
 }
 
-.cardHeader {
+.discover-gallery__card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
 }
 
-.cardIcon {
+.discover-gallery__card-icon {
   width: 42px;
   height: 42px;
   display: grid;
@@ -61,7 +60,7 @@
   color: var(--accent-lime);
 }
 
-.categoryTag {
+.discover-gallery__category-tag {
   display: inline-flex;
   align-items: center;
   padding: 0.5rem 0.75rem;
@@ -71,18 +70,18 @@
   font-size: 0.75rem;
 }
 
-.cardTitle {
+.discover-gallery__card-title {
   margin-bottom: 0.75rem;
   font-size: 1.2rem;
 }
 
-.cardText {
+.discover-gallery__card-text {
   margin-bottom: 1rem;
   font-size: 0.88rem;
   line-height: 1.45;
 }
 
-.previewLabel {
+.discover-gallery__preview-label {
   margin-bottom: 0.65rem;
   font-size: 0.68rem;
   font-weight: 700;
@@ -91,14 +90,14 @@
   color: var(--text-muted);
 }
 
-.tags {
+.discover-gallery__tags {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-bottom: 1.25rem;
 }
 
-.tag {
+.discover-gallery__tag {
   font-size: 0.625rem;
   color: var(--text-secondary);
   background: var(--bg-surface-2);
