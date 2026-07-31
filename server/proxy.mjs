@@ -84,10 +84,16 @@ function checkRateLimit(ip) {
   return true;
 }
 
-// CSP header for security
-const CSP = [
+// CSP header for security (API endpoint - no scripts needed)
+const CSP_API = [
+  "default-src 'none'",
+  "frame-ancestors 'none'",
+].join('; ');
+
+// CSP for HTML responses (if any)
+const CSP_HTML = [
   "default-src 'self'",
-  "script-src 'self' https://plausible.io",
+  "script-src 'self' 'nonce-{NONCE}' https://plausible.io",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data:",
@@ -97,12 +103,13 @@ const CSP = [
   "form-action 'self'"
 ].join('; ');
 
-function corsHeadersFor(origin) {
+function corsHeadersFor(origin, isHtml = false) {
   const allowOrigin = ALLOWED_ORIGINS.length > 0 ? (origin || '') : '*';
+  const csp = isHtml ? CSP_HTML : CSP_API;
   return {
     ...BASE_CORS_HEADERS,
     'Access-Control-Allow-Origin': allowOrigin || 'null',
-    'Content-Security-Policy': CSP,
+    'Content-Security-Policy': csp,
     ...(allowOrigin ? { Vary: 'Origin' } : {}),
   };
 }

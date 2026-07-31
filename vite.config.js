@@ -3,6 +3,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { sentryVitePlugin } from '@sentry/vite-plugin'
 import { VitePWA } from 'vite-plugin-pwa'
+import crypto from 'node:crypto'
 
 const testSetup = './tests/setup.js'
 
@@ -37,6 +38,20 @@ const sentryPlugin = hasAllSentrySecrets
       },
     })
   : null;
+
+// CSP nonce for inline scripts
+const cspNonce = crypto.randomBytes(16).toString('base64');
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self' 'nonce-{NONCE}' https://plausible.io",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com",
+  "img-src 'self' data:",
+  "connect-src 'self' https://plausible.io",
+  "frame-ancestors 'none'",
+  "base-uri 'self'",
+  "form-action 'self'"
+].join('; ');
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -79,6 +94,23 @@ export default defineConfig({
         ],
       },
     }),
+    {
+      name: 'csp-nonce',
+      transformIndexHtml(html) {
+        return html.replace(
+          '<script type="module" src="/src/main.jsx"></script>',
+          `<script type="module" nonce="${cspNonce}" src="/src/main.jsx"></script>`
+        );
+      },
+      configureServer(server) {
+        server.middlewares.use((req, res, next) => {
+          res.setHeader('Content-Security-Policy', 
+            CSP.replace('{NONCE}', cspNonce)
+          );
+          next();
+        });
+      }
+    }
   ].filter(Boolean),
   server: {
     // serve index.html for all paths during development (SPA routing)
