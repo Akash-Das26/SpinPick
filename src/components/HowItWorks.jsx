@@ -3,7 +3,7 @@ import styles from './HowItWorks.module.css';
 
 export function HowItWorks() {
   return (
-    <section className={`${styles.section} mt-80 mb-60`}>
+    <section className={`${styles.howItWorks__section} mt-80 mb-60`}>
       <div className="text-center mb-40">
         <span className="mono text-xs text-lime uppercase tracking-wider font-bold">
           HOW SPINPICK WORKS
@@ -16,10 +16,10 @@ export function HowItWorks() {
         </p>
       </div>
 
-      <div className={styles.cardGrid}>
+      <div className={styles.howItWorks__cardGrid}>
         {/* Step 1 */}
         <div className="glass-panel p-28">
-          <div className={`${styles.cardIcon} ${styles.iconGreen}`}>
+          <div className={`${styles.howItWorks__cardIcon} ${styles['howItWorks__cardIcon--green']}`}>
             <MessageSquare size={24} aria-hidden="true" />
           </div>
           <span className="mono text-xs text-lime font-bold">
@@ -28,14 +28,14 @@ export function HowItWorks() {
           <h3 className="font-extrabold mt-4 mb-8 text-lg">
             Ask Any Open-Ended Dilemma
           </h3>
-          <p className={styles.stepDescription}>
+          <p className={styles.howItWorks__stepDescription}>
             Type what to cook, where to travel, which project to ship, or pick from our quick prompt chips.
           </p>
         </div>
 
         {/* Step 2 */}
         <div className="glass-panel p-28">
-          <div className={`${styles.cardIcon} ${styles.iconCyan}`}>
+          <div className={`${styles.howItWorks__cardIcon} ${styles['howItWorks__cardIcon--cyan']}`}>
             <Cpu size={24} aria-hidden="true" />
           </div>
           <span className="mono text-xs text-accent-cyan font-bold">
@@ -44,14 +44,14 @@ export function HowItWorks() {
           <h3 className="font-extrabold mt-4 mb-8 text-lg">
             Smart Option Generator
           </h3>
-          <p className={styles.stepDescription}>
+          <p className={styles.howItWorks__stepDescription}>
             OpenRouter or the built-in keyword generator parses your intent and generates 4 to 12 tailored choices with descriptions and colors.
           </p>
         </div>
 
         {/* Step 3 */}
         <div className="glass-panel p-28">
-          <div className={`${styles.cardIcon} ${styles.iconPurple}`}>
+          <div className={`${styles.howItWorks__cardIcon} ${styles['howItWorks__cardIcon--purple']}`}>
             <PlayCircle size={24} aria-hidden="true" />
           </div>
           <span className="mono text-xs text-accent-purple font-bold">
@@ -60,7 +60,7 @@ export function HowItWorks() {
           <h3 className="font-extrabold mt-4 mb-8 text-lg">
             Physics Wheel & Action Plan
           </h3>
-          <p className={styles.stepDescription}>
+          <p className={styles.howItWorks__stepDescription}>
             Spin the wheel, hear synthetic audio clicks, land a winning pick, and receive 3 immediate action steps.
           </p>
         </div>

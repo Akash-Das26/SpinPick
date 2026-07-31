@@ -1,24 +1,27 @@
-.section {
+.how-it-works {
+}
+
+.how-it-works__section {
   margin-top: 5rem;
   margin-bottom: 3.75rem;
 }
 
-.heading { }
+.how-it-works__heading { }
 
-.cardGrid {
+.how-it-works__card-grid {
   display: grid;
   gap: 1.5rem;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
-.card {
+.how-it-works__card {
   padding: 1.75rem;
   background: var(--bg-surface);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-md);
 }
 
-.cardIcon {
+.how-it-works__card-icon {
   width: 48px;
   height: 48px;
   display: grid;
@@ -27,27 +30,27 @@
   border-radius: 0.75rem;
 }
 
-.iconGreen {
+.how-it-works__card-icon--green {
   background: rgba(216, 255, 91, 0.1);
   color: var(--accent-lime);
 }
 
-.iconCyan {
+.how-it-works__card-icon--cyan {
   background: rgba(0, 242, 254, 0.1);
   color: var(--accent-cyan);
 }
 
-.iconPurple {
+.how-it-works__card-icon--purple {
   background: rgba(181, 108, 255, 0.1);
   color: var(--accent-purple);
 }
 
-.stepTitle {
+.how-it-works__step-title {
   margin-top: 0.75rem;
   margin-bottom: 0.5rem;
 }
 
-.stepDescription {
+.how-it-works__step-description {
   font-size: 0.9rem;
   line-height: 1.55;
 }
