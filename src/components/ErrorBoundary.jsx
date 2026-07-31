@@ -36,9 +36,9 @@ export class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className={`bg-dark text-primary grid grid-center p-24 ${styles.root}`}>
-          <div className={`bg-surface border-medium p-32 text-center ${styles.card}`}>
-            <div className={`${styles.iconWrapper} rounded-md text-danger grid-center mx-auto mb-20`}>
+        <div className={`bg-dark text-primary grid grid-center p-24 ${styles.errorBoundary__root}`}>
+          <div className={`bg-surface border-medium p-32 text-center ${styles.errorBoundary__card}`}>
+            <div className={`${styles.errorBoundary__iconWrapper} rounded-md text-danger grid-center mx-auto mb-20`}>
               <AlertTriangle size={28} />
             </div>
 
@@ -46,13 +46,13 @@ export class ErrorBoundary extends React.Component {
               Something Went Wrong
             </h2>
 
-            <p className={`text-base leading-normal mb-24 ${styles.message}`}>
+            <p className={`text-base leading-normal mb-24 ${styles.errorBoundary__message}`}>
               SpinPick encountered an unexpected error. Don't worry, your decision history is preserved in storage.
             </p>
 
             <button
               onClick={this.handleReload}
-              className={`${styles.reloadBtn}`}
+              className={`${styles.errorBoundary__reloadBtn}`}
             >
               <RefreshCw size={16} />
               Reload Studio
