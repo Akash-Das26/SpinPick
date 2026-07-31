@@ -9,8 +9,8 @@ export function DecisionHistory({ history, onClearHistory, onLoadPastSpin }) {
   };
 
   return (
-    <div className={`${styles.root} mx-auto`}>
-      <div className={styles.sectionHeader}>
+    <div className={`${styles.decisionHistory__root} mx-auto`}>
+      <div className={styles.decisionHistory__sectionHeader}>
         <div>
           <span className="mono text-xs text-lime font-bold tracking-wider uppercase">
             HISTORY
@@ -34,8 +34,8 @@ export function DecisionHistory({ history, onClearHistory, onLoadPastSpin }) {
 
       {history.length === 0 ? (
         <div className="glass-panel text-center p-48">
-          <History size={48} color="var(--text-muted)" className={`${styles.emptyIcon} mx-auto mb-16`} aria-hidden="true" />
-          <h3 className={`${styles.emptyTitle} font-extrabold`}>No Decision History Yet</h3>
+          <History size={48} color="var(--text-muted)" className={`${styles.decisionHistory__emptyIcon} mx-auto mb-16`} aria-hidden="true" />
+          <h3 className={`${styles.decisionHistory__emptyTitle} font-extrabold`}>No Decision History Yet</h3>
           <p className="text-muted mt-6 text-sm">
             Spin the wheel in the studio or save custom wheels to record your decision trajectory.
           </p>
@@ -44,12 +44,12 @@ export function DecisionHistory({ history, onClearHistory, onLoadPastSpin }) {
           </p>
         </div>
       ) : (
-        <div className="flex-col gap-14">
+        <div className={`${styles.decisionHistory__historyRow}`}>
           {history.map((item, idx) => (
-            <div key={item.id || idx} className={`${styles.historyItem}`}>
-              <div className={styles.historyDetails}>
+            <div key={item.id || idx} className={`${styles.decisionHistory__item}`}>
+              <div className={styles.decisionHistory__details}>
                 <div className="flex items-center gap-10 mb-6">
-                  <span className={`${styles.historyBadge} mono text-xs text-lime`}>
+                  <span className={`${styles.decisionHistory__badge} mono text-xs text-lime`}>
                     VERDICT #{history.length - idx}
                   </span>
                   <span className="text-sm text-muted flex items-center gap-4">
@@ -58,12 +58,12 @@ export function DecisionHistory({ history, onClearHistory, onLoadPastSpin }) {
                   </span>
                 </div>
 
-                <h4 className={`${styles.cardTitle} font-extrabold text-primary`}>
+                <h4 className={`${styles.decisionHistory__cardTitle} font-extrabold text-primary`}>
                   {item.winner?.label || item.title || 'Decision Verdict'}
                 </h4>
                 
                 {item.prompt && (
-                  <p className={`${styles.cardPrompt} text-muted mt-2`}>
+                  <p className={`${styles.decisionHistory__cardPrompt} text-muted mt-2`}>
                     Prompt: "{item.prompt}"
                   </p>
                 )}
