@@ -1,32 +1,51 @@
-.nav {
+.compare-header {
+}
+
+.compare-header__nav {
   background: rgba(7, 7, 13, 0.95);
   padding: 12px 0;
 }
 
-.logo {
+.compare-header__container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.compare-header__logo {
   width: 34px;
   height: 34px;
   border-radius: 10px;
   background: var(--accent-gradient);
 }
 
-.title {
+.compare-header__title {
   font-size: 1.2rem;
 }
 
-.actions {
+.compare-header__actions {
   display: flex;
   gap: 8px;
   align-items: center;
 }
 
-.compareLink {
+.compare-header__compare-link {
   padding: 7px 14px;
   font-size: 0.85rem;
-  background: rgba(216,255,91,0.1);
+  background: rgba(216, 255, 91, 0.1);
+  color: var(--accent-lime);
+  border-radius: 9999px;
+  text-decoration: none;
+  font-weight: 700;
 }
 
-.tryLink {
+.compare-header__try-link {
   padding: 8px 18px;
   font-size: 0.85rem;
+  background: var(--accent-lime);
+  color: var(--text-inverse);
+  border-radius: 9999px;
+  text-decoration: none;
+  font-weight: 700;
 }
