@@ -72,7 +72,7 @@ export function ResultCard({
   };
 
   return (
-    <div className={`glass-panel-glow p-28 mt-24 ${styles.root}`}>
+    <div className={`glass-panel-glow p-28 mt-24 ${styles.resultCard}`}>
       {/* Top Header Badge */}
       <div className="flex justify-between items-center mb-16">
         <div className="flex items-center gap-8">
@@ -89,11 +89,11 @@ export function ResultCard({
 
       {/* Winner Title */}
       <div className="mb-20">
-        <h2 className={`font-black text-primary leading-tight ${styles.winnerTitle}`}>
+        <h2 className={`font-black text-primary leading-tight ${styles.resultCard__winnerTitle}`}>
           {winner.label}
         </h2>
         {winner.desc && (
-          <p className={`text-secondary mt-6 ${styles.winnerDescription}`}>
+          <p className={`text-secondary mt-6 ${styles.resultCard__winnerDescription}`}>
             {winner.desc}
           </p>
         )}
@@ -101,7 +101,7 @@ export function ResultCard({
 
       {/* AI Context & Reasoning */}
       {reasoning && (
-        <div className={`${styles.reasoningBox}`}>
+        <div className={styles.resultCard__reasoningBox}>
           <h4 className="mono text-xs text-lime tracking-wider mb-4 uppercase">
             DECISION RATIONALE & INSIGHT
           </h4>
@@ -119,7 +119,7 @@ export function ResultCard({
           </h4>
           <div className="flex-col gap-8">
             {actionSteps.map((step, idx) => (
-              <div key={idx} className={`${styles.actionStep}`}>
+              <div key={idx} className={`${styles.resultCard__actionStep}`}>
                 <ArrowRight size={16} color="var(--accent-lime)" className="shrink-0 mt-2" aria-hidden="true" />
                 <span>{step}</span>
               </div>
@@ -130,7 +130,7 @@ export function ResultCard({
 
       {/* Sensitive Disclaimer */}
       {isSensitive && (
-        <div className={`${styles.warningBox}`}>
+        <div className={`${styles.resultCard__warningBox}`}>
           <AlertTriangle size={16} className="shrink-0" aria-hidden="true" />
           <span>For decision support & educational purposes only. Not professional financial, legal, or medical advice.</span>
         </div>
