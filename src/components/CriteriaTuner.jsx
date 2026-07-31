@@ -44,47 +44,47 @@ export function CriteriaTuner({ options, setOptions, onClose }) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="criteria-tuner-title"
-      className={`glass-panel p-24 mt-20 ${styles.panel}`}
+      className={`glass-panel p-24 mt-20 ${styles.criteriaTuner__panel}`}
     >
-      <div className="flex justify-between items-center mb-18">
+      <div className={`${styles.criteriaTuner__header} flex justify-between items-center mb-18`}>
         <div className="flex items-center gap-10">
           <div className="grid-center text-lime p-8 rounded-sm bg-lime-glow">
             <SlidersHorizontal size={20} aria-hidden="true" />
           </div>
-<div>
-            <h3 className={`font-extrabold ${styles.title}`}>Keyword Boost Weight Tuner</h3>
-            <p className="text-sm text-muted">
-              Adjust decision factors — SpinPick boosts slice weights based on keyword matching in option titles.
-            </p>
-          </div>
         </div>
-
-        {/* Info tooltip */}
-        <div className="relative inline-block ml-4">
-          <button
-            type="button"
-            className="text-muted hover:text-lime transition-colors"
-            aria-label="How keyword boosting works"
-            aria-expanded={showTooltip}
-            onFocus={() => setShowTooltip(true)}
-            onBlur={() => setShowTooltip(false)}
-            onMouseEnter={() => setShowTooltip(true)}
-            onMouseLeave={() => setShowTooltip(false)}
-          >
-            <Info size={16} aria-hidden="true" />
-            {showTooltip && (
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1.5 text-xs text-white bg-gray-900 rounded whitespace-nowrap z-10">
-                Weights adjusted by keyword matching. For precise control, edit weights directly in Slice Editor.
-              </div>
-            )}
-          </button>
+        <div>
+          <h3 className={`font-extrabold ${styles.criteriaTuner__title}`}>Keyword Boost Weight Tuner</h3>
+          <p className="text-sm text-muted">
+            Adjust decision factors — SpinPick boosts slice weights based on keyword matching in option titles.
+          </p>
         </div>
+      </div>
 
-        <button className="btn btn-ghost btn-sm" onClick={handleReset} title="Reset to equal 1x weights">
-          <RotateCcw size={14} aria-hidden="true" />
-          Equal Weights
+      {/* Info tooltip */}
+      <div className="relative inline-block ml-4">
+        <button
+          type="button"
+          className="text-muted hover:text-lime transition-colors"
+          aria-label="How keyword boosting works"
+          aria-expanded={showTooltip}
+          onFocus={() => setShowTooltip(true)}
+          onBlur={() => setShowTooltip(false)}
+          onMouseEnter={() => setShowTooltip(true)}
+          onMouseLeave={() => setShowTooltip(false)}
+        >
+          <Info size={16} aria-hidden="true" />
+          {showTooltip && (
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1.5 text-xs text-white bg-gray-900 rounded whitespace-nowrap z-10">
+              Weights adjusted by keyword matching. For precise control, edit weights directly in Slice Editor.
+            </div>
+          )}
         </button>
       </div>
+
+      <button className="btn btn-ghost btn-sm" onClick={handleReset} title="Reset to equal 1x weights">
+        <RotateCcw size={14} aria-hidden="true" />
+        Equal Weights
+      </button>
 
       <button
         className="btn btn-ghost btn-sm mb-18 self-end"
@@ -95,9 +95,9 @@ export function CriteriaTuner({ options, setOptions, onClose }) {
         Close
       </button>
 
-      <div className={`grid gap-16 mb-20 ${styles.gridResponsive}`}>
+      <div className={`${styles.criteriaTuner__grid}`}>
         {/* Budget / Cost Preference */}
-        <div className="bg-surface border-subtle rounded-sm p-14">
+        <div className={`${styles.criteriaTuner__card}`}>
           <div className="flex justify-between text-sm font-bold mb-8">
             <span className="flex items-center gap-6">
               <DollarSign size={15} color="var(--accent-lime)" aria-hidden="true" />
@@ -109,7 +109,7 @@ export function CriteriaTuner({ options, setOptions, onClose }) {
             type="range" min="1" max="5" 
             value={criteria.budget} 
             onChange={(e) => setCriteria({ ...criteria, budget: Number(e.target.value) })}
-            className={`w-full ${styles.rangeLime}`}
+            className={`w-full ${styles['criteriaTuner__range--lime']}`}
             aria-label="Budget Consciousness Level"
           />
           <span className="block mt-4 text-xs text-muted">
@@ -118,7 +118,7 @@ export function CriteriaTuner({ options, setOptions, onClose }) {
         </div>
 
         {/* Time / Speed Preference */}
-        <div className="bg-surface border-subtle rounded-sm p-14">
+        <div className={`${styles.criteriaTuner__card}`}>
           <div className="flex justify-between font-bold mb-8 text-sm">
             <span className="flex items-center gap-6">
               <Clock size={15} color="var(--accent-cyan)" aria-hidden="true" />
@@ -130,7 +130,7 @@ export function CriteriaTuner({ options, setOptions, onClose }) {
             type="range" min="1" max="5" 
             value={criteria.time} 
             onChange={(e) => setCriteria({ ...criteria, time: Number(e.target.value) })}
-            className={`w-full ${styles.rangeCyan}`}
+            className={`w-full ${styles['criteriaTuner__range--cyan']}`}
             aria-label="Time Urgency Level"
           />
           <span className="block mt-4 text-xs text-muted">
@@ -139,7 +139,7 @@ export function CriteriaTuner({ options, setOptions, onClose }) {
         </div>
 
         {/* Effort / Simplicity Preference */}
-        <div className="bg-surface border-subtle rounded-sm p-14">
+        <div className={`${styles.criteriaTuner__card}`}>
           <div className="flex justify-between font-bold mb-8 text-sm">
             <span className="flex items-center gap-6">
               <Zap size={15} color="var(--accent-purple)" aria-hidden="true" />
@@ -151,7 +151,7 @@ export function CriteriaTuner({ options, setOptions, onClose }) {
             type="range" min="1" max="5" 
             value={criteria.effort} 
             onChange={(e) => setCriteria({ ...criteria, effort: Number(e.target.value) })}
-            className={`w-full ${styles.rangePurple}`}
+            className={`w-full ${styles['criteriaTuner__range--purple']}`}
             aria-label="Low Effort Preference Level"
           />
           <span className="block mt-4 text-xs text-muted">
@@ -160,7 +160,7 @@ export function CriteriaTuner({ options, setOptions, onClose }) {
         </div>
 
         {/* Excitement / Payoff Preference */}
-        <div className="bg-surface border-subtle rounded-sm p-14">
+        <div className={`${styles.criteriaTuner__card}`}>
           <div className="flex justify-between font-bold mb-8 text-sm">
             <span className="flex items-center gap-6">
               <Flame size={15} color="#ff4d6d" aria-hidden="true" />
@@ -172,7 +172,7 @@ export function CriteriaTuner({ options, setOptions, onClose }) {
             type="range" min="1" max="5" 
             value={criteria.excitement} 
             onChange={(e) => setCriteria({ ...criteria, excitement: Number(e.target.value) })}
-            className={`w-full ${styles.rangeDanger}`}
+            className={`w-full ${styles['criteriaTuner__range--danger']}`}
             aria-label="Excitement and Novelty Level"
           />
           <span className="block mt-4 text-xs text-muted">

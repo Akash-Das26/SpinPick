@@ -1,34 +1,37 @@
-.panel {
+.criteria-tuner {
+}
+
+.criteria-tuner__panel {
   animation: fadeIn 0.3s ease-out;
 }
 
-.title {
+.criteria-tuner__title {
   font-size: 1.15rem;
 }
 
-.gridResponsive {
+.criteria-tuner__grid {
   display: grid;
   gap: 16px;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
-.rangeLime {
+.criteria-tuner__range--lime {
   accent-color: var(--accent-lime);
 }
 
-.rangeCyan {
+.criteria-tuner__range--cyan {
   accent-color: var(--accent-cyan);
 }
 
-.rangePurple {
+.criteria-tuner__range--purple {
   accent-color: var(--accent-purple);
 }
 
-.rangeDanger {
+.criteria-tuner__range--danger {
   accent-color: #ff4d6d;
 }
 
-.card {
+.criteria-tuner__card {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
