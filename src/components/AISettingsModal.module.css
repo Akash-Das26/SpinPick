@@ -1,4 +1,7 @@
-.overlay {
+.ai-settings-modal {
+}
+
+.ai-settings-modal__overlay {
   position: fixed;
   inset: 0;
   display: grid;
@@ -9,29 +12,29 @@
   z-index: 100;
 }
 
-.modal {
+.ai-settings-modal__modal {
   width: 100%;
   max-width: 520px;
 }
 
-.headerBadge {
+.ai-settings-modal__header-badge {
   background: rgba(216, 255, 91, 0.1);
 }
 
-.title {
+.ai-settings-modal__title {
   font-size: 1.2rem;
 }
 
-.link {
+.ai-settings-modal__link {
   color: var(--accent-lime);
   text-decoration: underline;
 }
 
-.rangeLime {
+.ai-settings-modal__range--lime {
   accent-color: var(--accent-lime);
 }
 
-.securityNote {
+.ai-settings-modal__security-note {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -43,12 +46,12 @@
   border: 1px solid var(--border-medium);
 }
 
-.restartWrapper {
+.ai-settings-modal__restart-wrapper {
   margin-top: 1rem;
   opacity: 0.85;
 }
 
-.restartButton {
+.ai-settings-modal__restart-button {
   font-size: 0.72rem;
   color: var(--text-secondary);
 }

@@ -39,23 +39,23 @@ export function AISettingsModal({ isOpen, onClose, aiConfig, setAiConfig, onRest
     }, 800);
   };
 
-  return (
+return (
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="ai-settings-title"
-      className={`${styles.overlay} grid-center`}
+      className={`${styles.aiSettingsModal__overlay} grid-center`}
     >
-      <div ref={modalRef} className={`glass-panel p-28 w-full ${styles.modal}`}>
+      <div ref={modalRef} className={`glass-panel p-28 w-full ${styles.aiSettingsModal__modal}`}>
         
         {/* Header */}
         <div className="flex justify-between items-center mb-20">
           <div className="flex items-center gap-10">
-            <div className={`grid-center p-8 rounded-sm text-lime ${styles.headerBadge}`}>
+            <div className={`grid-center p-8 rounded-sm text-lime ${styles.aiSettingsModal__headerBadge}`}>
               <Cpu size={20} aria-hidden="true" />
             </div>
             <div>
-              <h3 id="ai-settings-title" className={`font-extrabold ${styles.title}`}>AI Intelligence Settings</h3>
+              <h3 id="ai-settings-title" className={`font-extrabold ${styles.aiSettingsModal__title}`}>AI Intelligence Settings</h3>
               <p className="text-sm text-muted">Configure OpenRouter access and your default wheel size</p>
             </div>
           </div>
@@ -84,7 +84,7 @@ export function AISettingsModal({ isOpen, onClose, aiConfig, setAiConfig, onRest
               Leave this blank to keep using the built-in generator. If you add a proxy URL in your environment, your key is forwarded there instead of being called directly from the browser.
             </p>
             <p className="text-xs text-muted mt-4">
-              Need a key? Get one at <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" className={styles.link}>openrouter.ai/keys</a>.
+              Need a key? Get one at <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" className={styles.aiSettingsModal__link}>openrouter.ai/keys</a>.
             </p>
           </div>
 
@@ -125,12 +125,12 @@ export function AISettingsModal({ isOpen, onClose, aiConfig, setAiConfig, onRest
               max="12"
               value={optionCount}
               onChange={(e) => setOptionCount(Number(e.target.value))}
-              className={`${styles.rangeLime} w-full`}
+              className={`${styles['aiSettingsModal__range--lime']} w-full`}
             />
           </div>
 
           {/* Security note */}
-          <div className={styles.securityNote}>
+          <div className={styles.aiSettingsModal__securityNote}>
             <AlertTriangle size={14} color="var(--warning)" className="shrink-0" aria-hidden="true" />
             <span>Never share API keys publicly. Your key stays in browser memory for this session and is not persisted automatically.</span>
           </div>
@@ -147,11 +147,11 @@ export function AISettingsModal({ isOpen, onClose, aiConfig, setAiConfig, onRest
           </div>
 
           {/* Hidden Restart Tour option */}
-          <div className={styles.restartWrapper}>
+          <div className={styles.aiSettingsModal__restartWrapper}>
             <button
               type="button"
               onClick={() => { onRestartTour?.(); onClose(); }}
-              className={`btn btn-ghost btn-sm text-muted px-8 py-4 ${styles.restartButton}`}
+              className={`btn btn-ghost btn-sm text-muted px-8 py-4 ${styles.aiSettingsModal__restartButton}`}
               aria-label="Replay the onboarding tour"
               title="Restart the onboarding walkthrough"
             >
@@ -160,7 +160,6 @@ export function AISettingsModal({ isOpen, onClose, aiConfig, setAiConfig, onRest
           </div>
 
         </form>
-
       </div>
     </div>
   );
