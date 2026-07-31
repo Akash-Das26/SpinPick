@@ -1,4 +1,7 @@
-.tableRoot {
+.comparison-table {
+}
+
+.comparison-table__root {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
@@ -6,35 +9,35 @@
   min-width: 580px;
 }
 
-.headerCorner {
+.comparison-table__header-corner {
   width: 36%;
   font-size: 0.8rem;
   letter-spacing: 0.07em;
 }
 
-.headerCell {
+.comparison-table__header-cell {
   padding: 20px;
   text-align: center;
 }
 
-.spinPickHeader {
+.comparison-table__header-cell--spinpick {
   width: 32%;
   background: rgba(216, 255, 91, 0.06);
   border-bottom: 2px solid var(--accent-lime);
   border-radius: 12px 12px 0 0;
 }
 
-.competitorHeader {
+.comparison-table__header-cell--competitor {
   width: 32%;
   background: rgba(255, 255, 255, 0.02);
   border-bottom: 1px solid var(--border-subtle);
 }
 
-.headerTitle {
+.comparison-table__header-title {
   font-size: 1rem;
 }
 
-.headerBadge {
+.comparison-table__header-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -49,20 +52,20 @@
   font-weight: 800;
 }
 
-.bodyRow:nth-child(even) {
+.comparison-table__body-row:nth-child(even) {
   background: rgba(255, 255, 255, 0.015);
 }
 
-.bodyRow td {
+.comparison-table__body-row td {
   padding: 13px 20px;
   border-bottom: 1px solid var(--border-subtle);
 }
 
-.bodyRow:last-child td {
+.comparison-table__body-row:last-child td {
   border-bottom: none;
 }
 
-.featureCell {
+.comparison-table__feature-cell {
   text-align: left;
   font-size: 0.88rem;
   padding: 13px 18px;
@@ -70,23 +73,23 @@
   color: var(--text-secondary);
 }
 
-.spinPickBodyCell {
+.comparison-table__spinpick-body-cell {
   background: rgba(216, 255, 91, 0.04);
 }
 
-.spinPickBodyCellAlt {
+.comparison-table__spinpick-body-cell--alt {
   background: rgba(216, 255, 91, 0.07);
 }
 
-.spinPickBodyCell:nth-child(3) {
+.comparison-table__spinpick-body-cell:nth-child(3) {
   background: rgba(216, 255, 91, 0.07);
 }
 
-.competitorBodyCell {
+.comparison-table__competitor-body-cell {
   background: transparent;
 }
 
-.iconBadge {
+.comparison-table__icon-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -95,16 +98,16 @@
   border-radius: 50%;
 }
 
-.yesBadge {
+.comparison-table__icon-badge--yes {
   background: rgba(56, 239, 125, 0.15);
   color: var(--accent-mint);
 }
 
-.noBadge {
+.comparison-table__icon-badge--no {
   background: rgba(255, 77, 109, 0.12);
   color: var(--danger);
 }
 
-.smallText {
+.comparison-table__small-text {
   font-size: 0.88rem;
 }
