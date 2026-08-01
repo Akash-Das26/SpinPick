@@ -27,8 +27,8 @@ SpinPick combines real-time AI option synthesis, multi-criteria weight tuning, b
 | Framework | [React 19](https://react.dev) |
 | Build | [Vite 8](https://vitejs.dev) + [Oxlint](https://oxc.rs) |
 | Routing | [React Router 6](https://reactrouter.com) |
-| Testing | [Vitest](https://vitest.dev) (unit, 111 tests) · [Playwright](https://playwright.dev) (E2E, 48 tests) |
-| CI | GitHub Actions (lint → 111 unit tests → build → 48 E2E tests) |
+| Testing | [Vitest](https://vitest.dev) (unit, 126 tests) · [Playwright](https://playwright.dev) (E2E, 48 tests) |
+| CI | GitHub Actions (lint → 126 unit tests → build → 48 E2E tests) |
 | Monitoring | [Sentry](https://sentry.io) (error tracking + source maps) |
 | PWA | [vite-plugin-pwa](https://vite-pwa-org.netlify.app) |
 
@@ -149,6 +149,16 @@ per-IP rate limiter). `GET /health` and `OPTIONS` are exempt so Docker
 healthchecks and preflights keep working, and browser clients (gated by
 `ALLOWED_ORIGINS`) never need the token.
 
+> ✅ **Regression-tested in CI.** The proxy's security behavior above — origin
+> allow-list (`403` for disallowed origins), `PROXY_AUTH_TOKEN` gate (`401` +
+> `WWW-Authenticate: Bearer`), rate limiting (`429`), and the `/health`/`OPTIONS`
+> exemptions — runs under `npm run test:unit` in the `lint-and-test` CI job:
+> mocked-handler tests (`tests/unit/proxy.test.mjs`, `aiService.proxy.test.mjs`)
+> **plus** HTTP-level integration tests (`tests/unit/proxy.http.test.mjs`) that
+> boot the real server on an ephemeral port and drive the same gates with real
+> `fetch`. A separate CI job (`proxy-smoke`) additionally exercises the live
+> matrix end-to-end with curl (`scripts/proxy-smoke.sh`).
+
 Then set these at **build time** on the static frontend host:
 
 | Env var | Value | Where |
@@ -197,7 +207,7 @@ To extend CI, edit the existing file instead of creating a new one.
 
 The project runs a three-stage CI pipeline on every push to `main`:
 
-1. **Lint, Unit Tests & Build** — `oxlint` → `vitest run` (111 tests) → `vite build`
+1. **Lint, Unit Tests & Build** — `oxlint` → `vitest run` (126 tests) → `vite build`
 2. **Secret Scan** — `gitleaks detect` on full history; fails on any realistic secret
 3. **E2E Tests** — 48 Playwright tests across 12 categories (smoke, navbar, generate, spin, modals, tabs, tournament, compare, routing, builder, discover, error handling)
 
