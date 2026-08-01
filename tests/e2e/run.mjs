@@ -133,7 +133,7 @@ async function main() {
     const input = page.locator('input[aria-label*="decision"]');
     await input.clear();
     await input.fill('What movie should I watch tonight?');
-    await page.getByRole('button', { name: /generate wheel/i }).click();
+    await page.getByRole('button', { name: /spin it|generate wheel/i }).click();
     await page.waitForSelector('[data-testid="wheel-disc"] path', { timeout: 10000 });
     assert((await page.locator('[data-testid="wheel-disc"] path').count()) >= 2, 'Not enough wheel paths');
     await page.close();
@@ -385,7 +385,7 @@ async function main() {
     await page.waitForTimeout(1000);
 
     const body = await page.textContent('body');
-    assert(body.includes('Generate Wheel') || body.includes('decision'), 'Did not return to studio');
+    assert(body.includes('Spin it') || body.includes('Generate Wheel') || body.includes('decision'), 'Did not return to studio');
     await page.close();
   });
 
@@ -635,7 +635,7 @@ async function main() {
     await input.clear();
     await page.waitForTimeout(300);
 
-    const genBtn = page.getByRole('button', { name: /generate wheel/i });
+    const genBtn = page.getByRole('button', { name: /spin it|generate wheel/i });
     assert(await genBtn.isDisabled(), 'Generate button should be disabled when prompt is empty');
     await page.close();
   });
@@ -648,7 +648,7 @@ async function main() {
     await page.waitForSelector('[data-testid="wheel-disc"] path', { timeout: 10000 });
 
     // After completion, button should be enabled with 'Generate Wheel' text
-    const genBtn = page.getByRole('button', { name: /generate wheel/i });
+    const genBtn = page.getByRole('button', { name: /spin it|generate wheel/i });
     assert(await genBtn.isEnabled(), 'Generate button should be enabled after generation completes');
     await page.close();
   });
