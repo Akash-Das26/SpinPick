@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { EventEmitter } from 'node:events';
 import {
   createProxyHandler,
   isOriginAllowed,
@@ -7,6 +6,7 @@ import {
   normalizeOrigin,
   isProxyAuthValid,
 } from '../../server/proxy.mjs';
+import { mockReq, mockRes, FAKE_KEY, TOKEN, PROD_ENV, AUTH_ENV } from '../helpers/httpMocks.mjs';
 
 /* ==========================================================================
    Unit Tests: server/proxy.mjs — Origin Allow-List & Request Handling
@@ -22,51 +22,9 @@ import {
      4. Empty ALLOWED_ORIGINS in production → browser origins blocked, no-Origin ok.
    ========================================================================== */
 
-const FAKE_KEY = 'test-api-key-1234567890';
-
-const PROD_ENV = {
-  ALLOWED_ORIGINS: 'https://spinpick.app,http://localhost:5173',
-  OPENROUTER_API_KEY: FAKE_KEY,
-  NODE_ENV: 'production',
-};
-
-/** Env with a configured shared secret for non-browser clients. */
-const AUTH_ENV = { ...PROD_ENV, PROXY_AUTH_TOKEN: 'super-secret-token-42' };
-
-/** Minimal request mock — EventEmitter so readBody's data/end/error hooks work. */
-function mockReq({ method = 'POST', url = '/api/openrouter', origin, authorization, body = '' } = {}) {
-  const req = new EventEmitter();
-  req.method = method;
-  req.url = url;
-  req.headers = {};
-  if (origin) req.headers.origin = origin;
-  if (authorization) req.headers.authorization = authorization;
-  req.socket = { remoteAddress: '127.0.0.1' };
-  // Emit the body stream on the next tick so the handler's readBody()
-  // listeners are attached before data flows.
-  process.nextTick(() => {
-    if (body) req.emit('data', body);
-    req.emit('end');
-  });
-  return req;
-}
-
-/** Minimal response mock capturing the status, headers and body. */
-function mockRes() {
-  const res = {
-    status: null,
-    headers: {},
-    body: '',
-    writeHead(status, headers = {}) {
-      res.status = status;
-      res.headers = headers;
-    },
-    end(chunk = '') {
-      res.body = chunk;
-    },
-  };
-  return res;
-}
+// Shared mocks/fixtures come from tests/helpers/httpMocks.mjs:
+// mockReq/mockRes drive the handler directly; FAKE_KEY/PROD_ENV/AUTH_ENV are
+// the common env fixtures also used by proxy.http.test.mjs.
 
 describe('proxy origin allow-list (createProxyHandler)', () => {
   let fetchMock;
@@ -374,8 +332,6 @@ describe('proxy shared-secret gate (PROXY_AUTH_TOKEN)', () => {
 });
 
 describe('isProxyAuthValid (pure function)', () => {
-  const TOKEN = 'super-secret-token-42';
-
   it('allows browser clients (Origin present) without a token', () => {
     expect(isProxyAuthValid('https://spinpick.app', undefined, TOKEN)).toBe(true);
   });

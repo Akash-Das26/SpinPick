@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { FAKE_KEY } from '../helpers/httpMocks.mjs';
 
 /* ==========================================================================
    Unit Tests: aiService — OpenRouter Proxy Routing
@@ -101,7 +102,7 @@ describe('aiService — proxy routing (VITE_OPENROUTER_PROXY_URL)', () => {
     fetchMock.mockResolvedValue(okResponse());
 
     const result = await aiService.generateWheelOptions('What should I cook?', {
-      apiKey: 'test-api-key-1234567890',
+      apiKey: FAKE_KEY,
       optionCount: 4,
     });
 
@@ -189,7 +190,7 @@ describe('aiService — proxy routing (VITE_OPENROUTER_PROXY_URL)', () => {
     fetchMock.mockRejectedValue(new Error('proxy down'));
 
     const result = await aiService.generateWheelOptions('What should I cook?', {
-      apiKey: 'test-api-key-1234567890', // should be ignored even on proxy failure
+      apiKey: FAKE_KEY, // should be ignored even on proxy failure
     });
 
     // Only one fetch call total — the direct endpoint is never hit
@@ -203,7 +204,7 @@ describe('aiService — proxy routing (VITE_OPENROUTER_PROXY_URL)', () => {
     fetchMock.mockResolvedValue(okResponse());
 
     const result = await aiService.generateWheelOptions('What should I cook?', {
-      apiKey: 'test-api-key-1234567890',
+      apiKey: FAKE_KEY,
     });
 
     expect(fetchMock).not.toHaveBeenCalled();

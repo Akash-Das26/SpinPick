@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createServer } from 'node:http';
 import { createProxyHandler } from '../../server/proxy.mjs';
+import { FAKE_KEY, TOKEN, PROD_ENV, AUTH_ENV } from '../helpers/httpMocks.mjs';
 
 /* ==========================================================================
    HTTP-Level Integration Tests: server/proxy.mjs
@@ -25,18 +26,7 @@ import { createProxyHandler } from '../../server/proxy.mjs';
    Runs under the `node` environment (not jsdom) since it needs real sockets.
    ========================================================================== */
 
-const FAKE_KEY = 'test-api-key-1234567890';
-const TOKEN = 'super-secret-token-42';
-
-const PROD_ENV = {
-  ALLOWED_ORIGINS: 'https://spinpick.app,http://localhost:5173',
-  OPENROUTER_API_KEY: FAKE_KEY,
-  NODE_ENV: 'production',
-};
-
-/** Env with a configured shared secret for non-browser clients. */
-const AUTH_ENV = { ...PROD_ENV, PROXY_AUTH_TOKEN: TOKEN };
-
+// Env fixtures come from tests/helpers/httpMocks.mjs (shared with proxy.test.mjs).
 const VALID_BODY = JSON.stringify({
   model: 'openai/gpt-4o-mini',
   messages: [{ role: 'user', content: 'hi' }],
