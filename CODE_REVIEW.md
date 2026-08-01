@@ -197,8 +197,8 @@ className={`${styles.wheelStage__header} wheel-stage__header`}
 | 23 | `HowItWorks` section duplicated in Studio tab | `App.jsx:417` | 5 min (remove or lazy-load) |
 | 24 | No Storybook for component development | — | 2 hrs |
 | 25 | No visual regression testing | — | 1 hr |
-| 25 | Light mode contrast untested | `index.css:66-97` | 30 min |
-| 26 | `useLocalStorage` hook doesn't handle SSR | `hooks/useLocalStorage.js` | 15 min |
+| 26 | Light mode contrast untested | `index.css:66-97` | 30 min |
+| 27 | `useLocalStorage` hook doesn't handle SSR | `hooks/useLocalStorage.js` | 15 min |
 
 ---
 
@@ -206,12 +206,12 @@ className={`${styles.wheelStage__header} wheel-stage__header`}
 
 | # | Idea | Why |
 |---|------|-----|
-| 38 | Add more languages (FR, DE, JA) | ✅ DONE (in `i18n.js`) |
-| 39 | Undo/Redo for Slice Editor | ✅ DONE |
-| 40 | Wheel animation speed slider | ✅ DONE |
-| 41 | Custom color picker for slices | ✅ DONE (native input type=color) |
-| 42 | Tournament seeding options (random, weight-based) | ✅ DONE |
-| 43 | Decision rationale sharing (permalink) | ✅ DONE |
+| 38 | Add more languages (FR, DE, JA) |  |
+| 39 | Undo/Redo for Slice Editor |  |
+| 40 | Wheel animation speed slider |  |
+| 41 | Custom color picker for slices |  |
+| 42 | Tournament seeding options (random, weight-based) |  |
+| 43 | Decision rationale sharing (permalink) |  |
 | 44 | Storybook + visual regression | Sprint+ |
 | 45 | More i18n languages beyond FR/DE/JA | Sprint+ |
 
@@ -234,12 +234,11 @@ dist/assets/criteria-tuner-Dweo2xgA.css      0.63 kB │ gzip:   0.36 kB
 dist/assets/DiscoverGallery-BiTw-8V2.css    1.74 kB │ gzip:   0.71 kB
 dist/assets/exporter-84BfTC_X.css           0.75 kB │ gzip:   0.44 kB
 dist/assets/CustomBuilder-DpyTwsN1.css      0.77 kB │ gzip:   0.42 kB
-dist/assets/criteria-tuner-Dweo2xgA.css      0.63 kB │ gzip:   0.36 kB
 dist/assets/DecisionHistory-Cwtf2LaW.css    1.10 kB │ gzip:   0.51 kB
 ```
 
 **Observations:**
-- Main chunk (202 KB gzipped) — **improved** from 191 KB but still high for a decision wheel
+- Main chunk (202 KB gzipped) — changed from 191 KB to 202 KB (still high for a decision wheel)
 - `vendor-icons` (7.5 KB) includes 56 icons; only ~25 used
 - CSS Modules working: `index-BCwoxTCD.css` (34 KB) extracted — good start
 - `compare` chunk (64 KB) loaded only on `/compare` route — good code splitting

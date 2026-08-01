@@ -99,6 +99,20 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { sentryVitePlugin } from '@sentry/vite-plugin';
 
+import crypto from 'crypto';
+
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self' 'nonce-{NONCE}' https://plausible.io",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com",
+  "img-src 'self' data:",
+  "connect-src 'self' https://plausible.io",
+  "frame-ancestors 'none'",
+  "base-uri 'self'",
+  "form-action 'self'"
+].join('; ');
+
 const cspNonce = crypto.randomBytes(16).toString('base64');
 
 export default defineConfig({
@@ -491,23 +505,12 @@ Add to `src/i18n.js` following the FR/DE/JA pattern.
 
 ```bash
 # Security
-npm run lint                    # 0 warnings ✅
-# Proxy deployed with rate limiting + CSP ✅
-# AI marketing copy fixed ✅
 
 # Architecture
-# App.jsx < 200 lines ✅
-# Tailwind configured, utility CSS deleted ✅
-# Dynamic imports for confetti/papaparse ✅
 
 # Accessibility
-# Wheel SVG has screen reader support ✅
-# Tour is user-initiated ✅
-# Keyboard shortcuts work ✅
 
 # Quality
-npm run test:unit               # 68+ passing ✅
-npm run test:e2e                # All passing ✅
 npm run build                   # < 100 KB main chunk gzipped ⏳ (currently 202 KB)
 
 # Manual verification
