@@ -3,6 +3,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { sentryVitePlugin } from '@sentry/vite-plugin'
 import { VitePWA } from 'vite-plugin-pwa'
+import { analyzer } from 'vite-bundle-analyzer'
 import crypto from 'node:crypto'
 
 const testSetup = './tests/setup.js'
@@ -110,7 +111,11 @@ export default defineConfig({
           next();
         });
       }
-    }
+    },
+    analyzer({
+      analyzerMode: 'static',
+      openAnalyzer: false,
+    }),
   ].filter(Boolean),
   server: {
     // serve index.html for all paths during development (SPA routing)
