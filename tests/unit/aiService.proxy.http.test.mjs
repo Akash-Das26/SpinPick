@@ -22,6 +22,9 @@ import { FAKE_KEY, PROD_ENV, AUTH_ENV, startServer, stopServer, stubUpstream } f
         offline fallback.
      5. Proxy rate-limit rejection (429 after the 60/min per-IP budget is
         exhausted) → graceful offline fallback, upstream never called.
+     6. Malformed upstream payload (the proxy relays garbage JSON verbatim) →
+        graceful offline fallback — upstream WAS called; the failure is in
+        parsing the relayed body, not in routing.
 
    Only the upstream OpenRouter call is mocked (localhost pass-through fetch
    stub from tests/helpers/httpMocks.mjs); everything else is genuinely wired.
@@ -155,4 +158,24 @@ describe('aiService ↔ proxy HTTP integration — live end-to-end routing', () 
     expect(result.options.length).toBeGreaterThanOrEqual(2);
     expect(upstreamFetch).not.toHaveBeenCalled(); // 429 gate fires before any forward
   }, 15000);
+
+  it('falls back to the offline engine when the proxy relays a malformed upstream payload (garbage JSON)', async () => {
+    // Upstream returns 200 with a non-JSON body; the proxy relays it verbatim
+    // (it only consumes upstream.text()), so aiService's response.json() on
+    // the relayed garbage throws and it falls back offline.
+    upstreamFetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: async () => '<html>502 bad gateway</html>',
+    });
+    const aiService = await loadAiService(baseUrl);
+
+    const result = await aiService.generateWheelOptions('What should I cook?');
+
+    expect(result.source).toBe('SpinPick Decision Engine');
+    expect(result.options.length).toBeGreaterThanOrEqual(2);
+    // Unlike the 401/429/network cases, the upstream WAS called — the failure
+    // is in parsing the relayed payload, not in routing/gating.
+    expect(upstreamFetch).toHaveBeenCalledTimes(1);
+  });
 });
