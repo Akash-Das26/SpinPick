@@ -178,6 +178,7 @@ describe('proxy HTTP integration — origin allow-list over real HTTP', () => {
     });
 
     expect(res.status).toBe(404);
+    expect(await res.json()).toEqual({ error: 'Not found' }); // parity with the 403 body assertion
     expect(upstreamFetch).not.toHaveBeenCalled();
   });
 });
