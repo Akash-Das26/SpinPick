@@ -377,10 +377,66 @@ describe('isOriginAllowed (pure function)', () => {
   });
 });
 
+describe('isOriginAllowed — normalization edge cases', () => {
+  const list = ['https://spinpick.app'];
+
+  it('matches an uppercase host and scheme (case-insensitive normalization)', () => {
+    expect(isOriginAllowed('https://SPINPICK.APP', list)).toBe(true);
+    expect(isOriginAllowed('HTTPS://SpinPick.App', list)).toBe(true);
+  });
+
+  it('does NOT treat scheme variants as the same origin (https vs http)', () => {
+    expect(isOriginAllowed('http://spinpick.app', list)).toBe(false);
+    expect(isOriginAllowed('https://spinpick.app', ['http://spinpick.app'])).toBe(false);
+  });
+
+  it('matches trailing slashes (single or multiple) on the host', () => {
+    expect(isOriginAllowed('https://spinpick.app/', list)).toBe(true);
+    expect(isOriginAllowed('https://spinpick.app///', list)).toBe(true);
+  });
+
+  it('matches when the origin carries a path, query, or fragment', () => {
+    expect(isOriginAllowed('https://spinpick.app/some/path?q=1#frag', list)).toBe(true);
+  });
+
+  it('treats a non-default explicit port as significant — mismatched ports do not match', () => {
+    expect(isOriginAllowed('https://spinpick.app:8443', list)).toBe(false);
+    expect(isOriginAllowed('https://spinpick.app', ['https://spinpick.app:8443'])).toBe(false);
+  });
+
+  it('matches when the explicit port equals the scheme default (URL drops 443/80)', () => {
+    expect(isOriginAllowed('https://spinpick.app:443', list)).toBe(true);
+    expect(isOriginAllowed('http://spinpick.app:80', ['http://spinpick.app'])).toBe(true);
+  });
+
+  it('matches an origin whose non-default port equals the allow-list entry', () => {
+    expect(isOriginAllowed('https://spinpick.app:8443', ['https://spinpick.app:8443'])).toBe(true);
+  });
+
+  it('matches IPv4 and IPv6 loopback origins exactly', () => {
+    expect(isOriginAllowed('http://127.0.0.1:5173', ['http://127.0.0.1:5173'])).toBe(true);
+    expect(isOriginAllowed('http://[::1]:5173', ['http://[::1]:5173'])).toBe(true);
+  });
+
+  it('does not match a different IP or port', () => {
+    expect(isOriginAllowed('http://127.0.0.1:5174', ['http://127.0.0.1:5173'])).toBe(false);
+    expect(isOriginAllowed('http://192.168.0.1:5173', ['http://127.0.0.1:5173'])).toBe(false);
+  });
+
+  it('normalizes uppercase in IP-based origins too', () => {
+    expect(isOriginAllowed('HTTP://127.0.0.1:5173', ['http://127.0.0.1:5173'])).toBe(true);
+  });
+});
+
 describe('parseAllowedOrigins + normalizeOrigin', () => {
   it('parses a comma-separated list with normalization', () => {
     expect(parseAllowedOrigins({ ALLOWED_ORIGINS: 'https://SpinPick.App/, http://localhost:5173' }))
       .toEqual(['https://spinpick.app', 'http://localhost:5173']);
+  });
+
+  it('preserves explicit ports and IP addresses when parsing the allow-list', () => {
+    expect(parseAllowedOrigins({ ALLOWED_ORIGINS: 'https://SpinPick.App:8443, http://127.0.0.1:5173' }))
+      .toEqual(['https://spinpick.app:8443', 'http://127.0.0.1:5173']);
   });
 
   it('empty ALLOWED_ORIGINS + NODE_ENV=production → empty list (strict)', () => {
