@@ -218,6 +218,7 @@ describe('proxy HTTP integration — PROXY_AUTH_TOKEN gate over real HTTP', () =
     });
 
     expect(res.status).toBe(401);
+    expect(res.headers.get('www-authenticate')).toBe('Bearer'); // RFC 7235 on every unauthorized response
     expect(upstreamFetch).not.toHaveBeenCalled();
   });
 

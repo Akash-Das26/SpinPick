@@ -274,6 +274,7 @@ describe('proxy shared-secret gate (PROXY_AUTH_TOKEN)', () => {
     }), res);
 
     expect(res.status).toBe(401);
+    expect(res.headers['WWW-Authenticate']).toBe('Bearer'); // RFC 7235 on every unauthorized response
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
