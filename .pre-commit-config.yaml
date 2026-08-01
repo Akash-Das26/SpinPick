@@ -1,0 +1,15 @@
+# Pre-commit hook configuration.
+#
+# Install once (Python 3.7+):
+#   pip install pre-commit
+#   pre-commit install
+#
+# From then on, gitleaks runs before every `git commit`, scanning only the
+# staged changes (fast) using the same allowlist as CI (.gitleaks.toml).
+# To skip temporarily (e.g. WIP commit):  git commit --no-verify
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.2
+    hooks:
+      - id: gitleaks
+        args: ["--config=.gitleaks.toml"]

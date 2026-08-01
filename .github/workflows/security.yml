@@ -1,0 +1,53 @@
+name: Security (CodeQL)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Weekly scan of the default branch (Monday 01:30 UTC) to catch issues
+    # introduced between pushes and in dormant code.
+    - cron: '30 1 * * 1'
+
+# Least privilege at workflow level; the analyze job escalates only what CodeQL
+# needs to upload SARIF results to the Security tab.
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      security-events: write # upload code-scanning results
+      actions: read          # codeql-action/init resolves the analysis bundle
+    strategy:
+      fail-fast: false
+      matrix:
+        # 'javascript-typescript' covers .js/.jsx/.ts/.tsx and the Node proxy.
+        language: ['javascript-typescript']
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          # Broader than the default suite: security + correctness/quality rules.
+          queries: security-and-quality
+
+      # JavaScript/TypeScript is analyzed statically — no build/autobuild step
+      # is required for this repo (Vite/React + plain Node server).
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:${{ matrix.language }}'

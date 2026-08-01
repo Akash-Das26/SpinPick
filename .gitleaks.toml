@@ -1,0 +1,34 @@
+# Gitleaks secret-scanning configuration for SpinPick.
+# Used by:
+#   - Local pre-commit hook (.pre-commit-config.yaml)
+#   - CI job (.github/workflows/ci.yml -> secret-scan)
+#   - `npm run secret:scan`
+#
+# Only the known-benign placeholder strings this repo intentionally ships are
+# allowed. Everything else that looks like a secret fails the scan.
+#
+# To allow a NEW benign fixture (e.g. a fake key added to unit tests), add its
+# exact string to the [allowlist] regexes below - never widen an existing regex
+# to cover real-looking patterns, and never add path- or commit-based allows.
+
+title = "SpinPick Gitleaks Config"
+
+# Start from gitleaks' default rule set.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Benign placeholders and test fixtures (never real secrets)"
+regexes = [
+  # Fake key fixtures used in unit tests (tests/unit/aiService.proxy.test.mjs).
+  # The tests assert the key is NOT forwarded, so the value is intentionally fake.
+  # Exact fixture string only, so a future finding that merely contains the
+  # substring is never accidentally suppressed.
+  '''test-api-key-1234567890''',
+  # Truncated placeholder form used across docs/UI copy (".env.example",
+  # README.md, Dockerfile, docker-compose.yml, src/i18n.js, server/proxy.mjs).
+  # A real OpenRouter key has 24+ alphanumerics after "sk-or-v1-", so
+  # "sk-or-v1-..." (literal dots) is never a valid key. Allowed defensively so
+  # future gitleaks rule updates can't false-positive on it.
+  '''sk-or-v1-\.\.\.''',
+]

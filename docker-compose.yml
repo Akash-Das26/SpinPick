@@ -22,8 +22,14 @@ services:
       # REQUIRED — the OpenRouter API key. Stays server-side, never shipped.
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:?Set OPENROUTER_API_KEY — see README}
       # RECOMMENDED — comma-separated frontend origin allow-list. When set,
-      # requests with a disallowed Origin header get 403. Leave unset for CORS *.
+      # requests with a disallowed Origin header get 403. Leave unset and the
+      # proxy defaults to a strict empty allow-list in production (browser
+      # requests get 403, CORS header 'null'). Set to your frontend origin(s).
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
+      # RECOMMENDED — shared secret for non-browser clients. When set, requests
+      # WITHOUT an Origin header must send `Authorization: Bearer <token>` or
+      # they get 401 (closes the credit-burning vector for scripts/curl).
+      PROXY_AUTH_TOKEN: ${PROXY_AUTH_TOKEN:-}
       # Optional attribution + tuning
       OPENROUTER_SITE_URL: ${OPENROUTER_SITE_URL:-https://spinpick.app}
       OPENROUTER_APP_NAME: ${OPENROUTER_APP_NAME:-SpinPick Decision Studio}

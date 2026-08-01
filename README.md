@@ -27,8 +27,8 @@ SpinPick combines real-time AI option synthesis, multi-criteria weight tuning, b
 | Framework | [React 19](https://react.dev) |
 | Build | [Vite 8](https://vitejs.dev) + [Oxlint](https://oxc.rs) |
 | Routing | [React Router 6](https://reactrouter.com) |
-| Testing | [Vitest](https://vitest.dev) (unit, 58 tests) · [Playwright](https://playwright.dev) (E2E, 48 tests) |
-| CI | GitHub Actions (lint → 58 unit tests → build → 48 E2E tests) |
+| Testing | [Vitest](https://vitest.dev) (unit, 111 tests) · [Playwright](https://playwright.dev) (E2E, 48 tests) |
+| CI | GitHub Actions (lint → 111 unit tests → build → 48 E2E tests) |
 | Monitoring | [Sentry](https://sentry.io) (error tracking + source maps) |
 | PWA | [vite-plugin-pwa](https://vite-pwa-org.netlify.app) |
 
@@ -130,11 +130,24 @@ Deploy it anywhere that runs Node:
   Cloudflare Worker or Vercel/Netlify function.
 
 Because the proxy sends permissive CORS headers, a separate-domain (proxy on
-its own origin) deployment works with **zero frontend CORS config**: with no
-`ALLOWED_ORIGINS` set the header is `*`, and when the allow-list is configured
-the header reflects your frontend origin instead. Note the allow-list defends
-against *browser-based* abuse only — requests without an `Origin` header
-(e.g. `curl`, server-to-server) pass through.
+its own origin) deployment works with **zero frontend CORS config**: when the
+allow-list is configured the header reflects your frontend origin instead.
+
+> ⚠️ **`ALLOWED_ORIGINS` is effectively required for production.** In production
+> the proxy defaults to a **strict empty allow-list**: without it the browser
+> frontend itself is rejected (`403`) and the CORS header is `null` (not `*`).
+> With it set, browsers from other websites are blocked. Note it only filters
+> browser `Origin` headers — non-browser clients (no `Origin`) are throttled by
+> the rate limiter (60 req/min/IP); set `PROXY_AUTH_TOKEN` to reject them
+> outright. Keep the proxy URL unguessable either way.
+
+The allow-list defends against *browser-based* abuse. To also stop non-browser
+clients (e.g. `curl`, scripts, server-to-server) — which don't send an `Origin`
+header — set `PROXY_AUTH_TOKEN`; such clients must then present
+`Authorization: Bearer <PROXY_AUTH_TOKEN>` or they receive `401` (on top of the
+per-IP rate limiter). `GET /health` and `OPTIONS` are exempt so Docker
+healthchecks and preflights keep working, and browser clients (gated by
+`ALLOWED_ORIGINS`) never need the token.
 
 Then set these at **build time** on the static frontend host:
 
@@ -146,6 +159,7 @@ Then set these at **build time** on the static frontend host:
 | `OPENROUTER_SITE_URL` | `https://spinpick.app` (optional) | Proxy server, used for OpenRouter attribution |
 | `OPENROUTER_APP_NAME` | `SpinPick Decision Studio` (optional) | Proxy server, used for OpenRouter attribution |
 | `ALLOWED_ORIGINS` | `https://spinpick.app,http://localhost:5173` (recommended) | Proxy server — comma-separated origin allow-list; other origins get 403 |
+| `PROXY_AUTH_TOKEN` | long random string (recommended) | Proxy server — shared secret for **non-browser** clients; when set, requests without an `Origin` header must send `Authorization: Bearer <token>` or get 401 |
 | `UPSTREAM_TIMEOUT_MS` | `60000` (default) | Proxy server — upstream request timeout |
 
 ### Endpoints
@@ -161,10 +175,31 @@ See `server/proxy.mjs` for the full implementation.
 
 ## CI Status
 
-The project runs a two-stage CI pipeline on every push to `main`:
+✅ **The repo ships with a hardened `.github/workflows/ci.yml` — use it, don't
+overwrite it.** It runs lint, unit tests, production build, SEO validation, E2E tests, and a
+gitleaks secret scan on every push/PR, with security defaults that hand-rolled
+templates often miss:
 
-1. **Lint, Unit Tests & Build** — `oxlint` → `vitest run` (58 tests) → `vite build`
-2. **E2E Tests** — 48 Playwright tests across 12 categories (smoke, navbar, generate, spin, modals, tabs, tournament, compare, routing, builder, discover, error handling)
+- `permissions: contents: read` (least-privilege token)
+- `concurrency` + `cancel-in-progress` (no wasted runs)
+- `timeout-minutes` on every job
+- E2E with `BASE_URL` env + Playwright
+- **Secret scanning** — pinned `gitleaks` binary (v8.18.2) scans full history in
+  the `secret-scan` job; a local pre-commit hook (`.pre-commit-config.yaml`)
+  scans staged changes with the same `.gitleaks.toml` allowlist. Install the
+  hook with `pip install pre-commit && pre-commit install` (or run
+  `npm run secret:scan` anytime to scan the whole repo)
+- **CodeQL code scanning** — separate `.github/workflows/security.yml`
+  (`init@v3`, `security-and-quality` queries) runs on every push/PR and weekly;
+  results appear in the Security tab
+
+To extend CI, edit the existing file instead of creating a new one.
+
+The project runs a three-stage CI pipeline on every push to `main`:
+
+1. **Lint, Unit Tests & Build** — `oxlint` → `vitest run` (111 tests) → `vite build`
+2. **Secret Scan** — `gitleaks detect` on full history; fails on any realistic secret
+3. **E2E Tests** — 48 Playwright tests across 12 categories (smoke, navbar, generate, spin, modals, tabs, tournament, compare, routing, builder, discover, error handling)
 
 Replace `YOUR_USERNAME` in the badge URL above with your GitHub username or organization after pushing.
 

@@ -17,7 +17,8 @@ Closes #<!-- issue number -->
 <!-- Describe the tests you ran to verify your changes -->
 
 - [ ] `npm run lint` — passes without errors
-- [ ] `npm run test:unit` — all 34 tests pass
+- [ ] `npm run test:unit` — all 111 tests pass
+- [ ] `npm run secret:scan` — gitleaks reports no findings
 - [ ] `npm run build` — production build succeeds
 - [ ] `npm run test:e2e` — all 48 E2E tests pass (if applicable)
 

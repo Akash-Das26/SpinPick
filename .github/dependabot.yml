@@ -1,0 +1,60 @@
+# Dependabot configuration
+# Docs: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+
+updates:
+  # ─── npm dependencies (frontend + build tooling) ───────────────────────
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    # NOTE: the repo's default branch must be "main" (see GITHUB_PUSH_GUIDE.md
+    # 'git branch -M main' step) or Dependabot PRs will silently target a
+    # branch that doesn't exist on the remote.
+    target-branch: "main"
+    labels:
+      - "dependencies"
+      - "npm"
+    # Group tightly-coupled packages so they bump together (fewer, safer PRs)
+    groups:
+      react-ecosystem:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+          - "react-router"
+          - "react-router-dom"
+          - "react-i18next"
+      storybook:
+        patterns:
+          - "@storybook/*"
+          - "storybook"
+          - "@chromatic-com/storybook"
+      vite-tooling:
+        patterns:
+          - "vite"
+          - "@vitejs/*"
+          - "vite-plugin-*"
+          - "vite-bundle-analyzer"
+          - "vitest"
+          - "@vitest/*"
+          - "jsdom"
+
+  # ─── GitHub Actions workflows ──────────────────────────────────────────
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"

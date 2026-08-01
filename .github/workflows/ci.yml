@@ -6,9 +6,19 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -30,8 +40,34 @@ jobs:
       - name: Build production
         run: npm run build
 
+  secret-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download gitleaks (pinned v8.18.2, checksum-verified)
+        run: |
+          curl -sSfL -o gitleaks_8.18.2_linux_x64.tar.gz \
+            https://github.com/gitleaks/gitleaks/releases/download/v8.18.2/gitleaks_8.18.2_linux_x64.tar.gz
+          curl -sSfL -o gitleaks_8.18.2_checksums.txt \
+            https://github.com/gitleaks/gitleaks/releases/download/v8.18.2/gitleaks_8.18.2_checksums.txt
+          grep 'gitleaks_8.18.2_linux_x64.tar.gz' gitleaks_8.18.2_checksums.txt | sha256sum -c -
+          tar -xzf gitleaks_8.18.2_linux_x64.tar.gz gitleaks
+          chmod +x gitleaks
+
+      - name: Run gitleaks secret scan (full history)
+        run: ./gitleaks detect --source . --config .gitleaks.toml --redact --verbose
+
   validate-seo:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -118,6 +154,9 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
     needs: lint-and-test
     steps:
       - uses: actions/checkout@v4
@@ -141,8 +180,12 @@ jobs:
 
   deploy-preview:
     runs-on: ubuntu-latest
-    needs: [lint-and-test, validate-seo, e2e]
-    if: github.event_name == 'pull_request'
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    needs: [lint-and-test, validate-seo, secret-scan, e2e]
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
+    environment: preview
     steps:
       - name: Deploy to preview
         run: echo "Deploy preview URL would be generated here"
