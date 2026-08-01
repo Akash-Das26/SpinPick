@@ -25,6 +25,8 @@ import { FAKE_KEY, PROD_ENV, AUTH_ENV, startServer, stopServer, stubUpstream } f
      6. Malformed upstream payload (the proxy relays garbage JSON verbatim) →
         graceful offline fallback — upstream WAS called; the failure is in
         parsing the relayed body, not in routing.
+     7. Valid JSON whose options array is empty (relayed verbatim) → graceful
+        offline fallback — payload validation (not parsing) rejects it.
 
    Only the upstream OpenRouter call is mocked (localhost pass-through fetch
    stub from tests/helpers/httpMocks.mjs); everything else is genuinely wired.
@@ -177,5 +179,36 @@ describe('aiService ↔ proxy HTTP integration — live end-to-end routing', () 
     // Unlike the 401/429/network cases, the upstream WAS called — the failure
     // is in parsing the relayed payload, not in routing/gating.
     expect(upstreamFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('falls back to the offline engine when the proxy relays valid JSON with an empty options array', async () => {
+    // A well-formed envelope that parses fine, but options is [] → aiService's
+    // payload-validation guard (Array.isArray && length > 0) rejects it and it
+    // falls back offline. The proxy only consumes upstream.text(), relaying it
+    // verbatim; aiService's response.json() on the relayed envelope succeeds.
+    const envelope = JSON.stringify({
+      choices: [{
+        message: {
+          content: JSON.stringify({
+            options: [],
+            recommendedIndex: 0,
+            reasoning: 'No options.',
+            actionSteps: [],
+          }),
+        },
+      }],
+    });
+    upstreamFetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: async () => envelope,
+    });
+    const aiService = await loadAiService(baseUrl);
+
+    const result = await aiService.generateWheelOptions('What should I cook?');
+
+    expect(result.source).toBe('SpinPick Decision Engine');
+    expect(result.options.length).toBeGreaterThanOrEqual(2);
+    expect(upstreamFetch).toHaveBeenCalledTimes(1); // forwarded, then rejected by validation
   });
 });
