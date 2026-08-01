@@ -45,6 +45,12 @@ updates:
           - "vitest"
           - "@vitest/*"
           - "jsdom"
+      sentry:
+        patterns:
+          - "@sentry/*"
+      testing-library:
+        patterns:
+          - "@testing-library/*"
 
   # ─── GitHub Actions workflows ──────────────────────────────────────────
   - package-ecosystem: "github-actions"
