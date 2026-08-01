@@ -102,13 +102,15 @@ cannot merge unless every gate passes:
 | `SENTRY_ORG` | Sentry organization slug |
 | `SENTRY_PROJECT` | Sentry project name |
 
-> ⚠️ **`ALLOWED_ORIGINS` is a *server-side* proxy env var, not a GitHub secret.**
-> Set it on the deployed proxy (see [Post-Launch Checklist](#post-launch-checklist) below):
+> ⚠️ **`ALLOWED_ORIGINS` and `PROXY_AUTH_TOKEN` are *server-side* proxy env vars, not GitHub secrets.**
+> Set them on the deployed proxy (see [Post-Launch Checklist](#post-launch-checklist) below):
 > `ALLOWED_ORIGINS=https://spinpick.app,http://localhost:5173`
-> Required for production: without it the browser frontend itself is rejected (403), and
-> with it, browsers from other websites are blocked. Note it only filters browser
-> `Origin` headers — non-browser clients are throttled by the rate limiter (60 req/min/IP),
-> so keep the proxy URL unguessable.
+> `PROXY_AUTH_TOKEN=<long random string>`  (generate with `openssl rand -hex 32`)
+> `ALLOWED_ORIGINS` is required for production: without it the browser frontend itself is
+> rejected (403), and with it, browsers from other websites are blocked. It only filters
+> browser `Origin` headers — non-browser clients (no `Origin`) are throttled by the rate
+> limiter (60 req/min/IP). To reject those outright, set `PROXY_AUTH_TOKEN` — such clients
+> must then send `Authorization: Bearer <token>` or get 401. Keep the proxy URL unguessable either way.
 
 ### 4. GitHub Actions (CI/CD)
 
@@ -162,8 +164,38 @@ open https://github.com/YOUR_USERNAME/spinpick/actions
 - [ ] `VITE_SENTRY_DSN` set in production env
 - [ ] Proxy deployed with `OPENROUTER_API_KEY`
 - [ ] **Proxy `ALLOWED_ORIGINS` set** to your frontend origin(s) — e.g. `ALLOWED_ORIGINS=https://spinpick.app,http://localhost:5173` (blocks cross-site browser abuse; non-browser clients are only rate-limited — keep the URL unguessable)
+- [ ] **Proxy `PROXY_AUTH_TOKEN` set** to a long random string (`openssl rand -hex 32`) — non-browser clients (curl/scripts/server-to-server) must send `Authorization: Bearer <token>` or get 401; `GET /health` and `OPTIONS` are exempt so healthchecks/preflights keep working
+- [ ] **Proxy deployment smoke-tested** — run `npm run smoke:proxy` (or the CI `proxy-smoke` job) to verify the origin allow-list, token gate, `WWW-Authenticate: Bearer` header, and rate limit end-to-end
 - [ ] Domain configured (if custom domain)
 - [ ] Analytics/Plausible configured
+
+### Deploying the proxy (docker compose one-liner)
+
+The repo ships a `Dockerfile` + `docker-compose.yml`. Deploy with one command,
+passing all proxy env vars inline (the key can also live in a local `.env` file
+next to `docker-compose.yml` — never commit it):
+
+```bash
+OPENROUTER_API_KEY=sk-or-v1-... \
+ALLOWED_ORIGINS=https://spinpick.app,http://localhost:5173 \
+PROXY_AUTH_TOKEN=<long-random-string> \
+docker compose up -d --build
+```
+
+Equivalent with plain `docker run` (no compose):
+
+```bash
+docker build -t spinpick-proxy .
+docker run --rm -d -p 8787:8787 \
+  -e OPENROUTER_API_KEY=sk-or-v1-... \
+  -e ALLOWED_ORIGINS=https://spinpick.app \
+  -e PROXY_AUTH_TOKEN=<long-random-string> \
+  spinpick-proxy
+```
+
+Generate the token with `openssl rand -hex 32`. After the container is up, point the
+frontend at it by setting `VITE_OPENROUTER_PROXY_URL` on the build
+(e.g. `https://api.spinpick.app`), then verify the deployment with `npm run smoke:proxy`.
 
 ### Security scanning (Settings → Code security and analysis)
 

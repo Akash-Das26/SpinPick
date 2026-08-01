@@ -13,7 +13,10 @@
 #     spinpick-proxy
 #
 # Or with docker compose (recommended — see docker-compose.yml):
-#   OPENROUTER_API_KEY=sk-or-v1-... docker compose up -d --build
+#   OPENROUTER_API_KEY=sk-or-v1-... \
+#   ALLOWED_ORIGINS=https://spinpick.app,http://localhost:5173 \
+#   PROXY_AUTH_TOKEN=<long-random-string> \
+#   docker compose up -d --build
 # ============================================================================
 
 FROM node:22-alpine

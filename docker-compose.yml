@@ -3,7 +3,10 @@
 # ----------------------------------------------------------------------------
 # Deploy the proxy with one command:
 #
-#   OPENROUTER_API_KEY=sk-or-v1-... docker compose up -d --build
+#   OPENROUTER_API_KEY=sk-or-v1-... \
+#   ALLOWED_ORIGINS=https://spinpick.app,http://localhost:5173 \
+#   PROXY_AUTH_TOKEN=<long-random-string> \
+#   docker compose up -d --build
 #
 # The key can also live in a local .env file next to this one (never commit it).
 # After the container is up, set VITE_OPENROUTER_PROXY_URL on the frontend
