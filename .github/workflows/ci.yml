@@ -183,12 +183,33 @@ jobs:
         env:
           BASE_URL: http://localhost:5173
 
+  proxy-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    needs: lint-and-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Proxy security-matrix smoke test
+        run: npm run smoke:proxy
+
   deploy-preview:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       contents: read
-    needs: [lint-and-test, validate-seo, secret-scan, e2e]
+    needs: [lint-and-test, validate-seo, secret-scan, proxy-smoke, e2e]
     if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
     environment: preview
     steps:

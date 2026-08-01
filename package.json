@@ -10,6 +10,7 @@
     "secret:scan": "gitleaks detect --source . --config .gitleaks.toml --redact",
     "preview": "vite preview",
     "proxy": "node server/proxy.mjs",
+    "smoke:proxy": "bash scripts/proxy-smoke.sh",
     "test:e2e": "node tests/e2e/run.mjs",
     "test:e2e:ui": "node tests/e2e/run.mjs --headed",
     "test:unit": "vitest run",
