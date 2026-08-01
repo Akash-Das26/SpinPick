@@ -182,8 +182,8 @@ export function createProxyHandler(env = process.env) {
     return true;
   }
 
-  function send(res, status, body, origin) {
-    res.writeHead(status, corsHeadersFor(origin, allowedOrigins));
+  function send(res, status, body, origin, extraHeaders = {}) {
+    res.writeHead(status, { ...corsHeadersFor(origin, allowedOrigins), ...extraHeaders });
     res.end(JSON.stringify(body));
   }
 
@@ -246,7 +246,9 @@ export function createProxyHandler(env = process.env) {
     // beyond the per-IP rate limiter). Browsers (Origin present) and /health /
     // OPTIONS are handled above and are exempt.
     if (!isProxyAuthValid(origin, req.headers.authorization, proxyAuthToken)) {
-      send(res, 401, { error: 'Unauthorized: missing or invalid PROXY_AUTH_TOKEN' }, origin);
+      send(res, 401, { error: 'Unauthorized: missing or invalid PROXY_AUTH_TOKEN' }, origin, {
+        'WWW-Authenticate': 'Bearer', // RFC 7235: tell the client how to authenticate
+      });
       return;
     }
 

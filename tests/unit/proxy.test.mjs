@@ -296,6 +296,16 @@ describe('proxy shared-secret gate (PROXY_AUTH_TOKEN)', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it('sends WWW-Authenticate: Bearer on the 401 (RFC 7235 spec correctness)', async () => {
+    const handler = createProxyHandler(AUTH_ENV);
+    const res = mockRes();
+
+    await handler(mockReq({ body: '{"model":"m","messages":[{"role":"user","content":"hi"}]}' }), res);
+
+    expect(res.status).toBe(401);
+    expect(res.headers['WWW-Authenticate']).toBe('Bearer');
+  });
+
   it('rejects a no-Origin client with a wrong token with 401', async () => {
     const handler = createProxyHandler(AUTH_ENV);
     const res = mockRes();
