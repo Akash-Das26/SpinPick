@@ -192,17 +192,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
+      # server/proxy.mjs is zero-dependency (Node built-ins only), so no npm
+      # install is needed — the smoke script starts its own isolated proxy.
       - name: Proxy security-matrix smoke test
-        run: npm run smoke:proxy
+        run: bash scripts/proxy-smoke.sh
 
   deploy-preview:
     runs-on: ubuntu-latest

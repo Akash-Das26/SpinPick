@@ -42,14 +42,20 @@ check() { # name expected actual
 PROXY_PID=$!
 trap 'kill "$PROXY_PID" 2>/dev/null || true; wait "$PROXY_PID" 2>/dev/null || true' EXIT
 
-# Wait for the server to answer /health (up to ~10s)
+# Wait for the server to answer /health (up to ~10s), then fail fast with logs
+UP=0
 for _ in $(seq 1 50); do
-  curl -sf -o /dev/null "${BASE}/health" && break
+  if curl -sf -o /dev/null "${BASE}/health"; then UP=1; break; fi
   sleep 0.2
 done
+if [ "$UP" -ne 1 ]; then
+  printf 'Proxy failed to start. Log:\n'
+  cat /tmp/spinpick-proxy-smoke.log || true
+  exit 1
+fi
 
 BODY='{"model":"m","messages":[]}' # empty messages → 400 once all gates pass
-JSON='-H Content-Type:application/json'
+JSON_HEADER=(-H 'Content-Type: application/json')
 
 printf '\n== 1) Health ==\n'
 check 'GET /health → 200' 200 "$(curl -s -o /dev/null -w '%{http_code}' "${BASE}/health")"
@@ -60,31 +66,31 @@ check 'OPTIONS allowed origin → 204' 204 \
 
 printf '\n== 3) Origin allow-list ==\n'
 check 'POST evil origin → 403' 403 \
-  "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Origin: https://evil.example.com' $JSON -d "$BODY" "${BASE}/api/openrouter")"
+  "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Origin: https://evil.example.com' "${JSON_HEADER[@]}" -d "$BODY" "${BASE}/api/openrouter")"
 check 'POST allowed origin → 400 (gate passed)' 400 \
-  "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Origin: https://spinpick.app' $JSON -d "$BODY" "${BASE}/api/openrouter")"
+  "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Origin: https://spinpick.app' "${JSON_HEADER[@]}" -d "$BODY" "${BASE}/api/openrouter")"
 
 printf '\n== 4) PROXY_AUTH_TOKEN gate ==\n'
 check 'no-Origin, no token → 401' 401 \
-  "$(curl -s -o /dev/null -w '%{http_code}' -X POST $JSON -d "$BODY" "${BASE}/api/openrouter")"
+  "$(curl -s -o /dev/null -w '%{http_code}' -X POST "${JSON_HEADER[@]}" -d "$BODY" "${BASE}/api/openrouter")"
 check 'no-Origin, wrong token → 401' 401 \
-  "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Authorization: Bearer wrong-token' $JSON -d "$BODY" "${BASE}/api/openrouter")"
+  "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Authorization: Bearer wrong-token' "${JSON_HEADER[@]}" -d "$BODY" "${BASE}/api/openrouter")"
 check 'no-Origin, correct token → 400 (gate passed)' 400 \
-  "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Authorization: Bearer super-secret-token-42' $JSON -d "$BODY" "${BASE}/api/openrouter")"
+  "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Authorization: Bearer super-secret-token-42' "${JSON_HEADER[@]}" -d "$BODY" "${BASE}/api/openrouter")"
 
 # RFC 7235 — the 401 must advertise the auth scheme so clients know how to retry
-WWW=$(curl -s -D - -o /dev/null -X POST $JSON -d "$BODY" "${BASE}/api/openrouter" \
+WWW=$(curl -s -D - -o /dev/null -X POST "${JSON_HEADER[@]}" -d "$BODY" "${BASE}/api/openrouter" \
   | tr -d '\r' | grep -i '^www-authenticate:' | awk '{print $2}' || true)
 check '401 includes WWW-Authenticate: Bearer' 'Bearer' "$WWW"
 
 printf '\n== 5) Browser exemption ==\n'
 check 'browser (allowed origin), no token → 400, not 401' 400 \
-  "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Origin: https://spinpick.app' $JSON -d "$BODY" "${BASE}/api/openrouter")"
+  "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Origin: https://spinpick.app' "${JSON_HEADER[@]}" -d "$BODY" "${BASE}/api/openrouter")"
 
 printf '\n== 6) Rate limit (60/min per IP) ==\n'
 code=''
 for _ in $(seq 1 70); do
-  code=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Origin: https://spinpick.app' $JSON -d "$BODY" "${BASE}/api/openrouter")
+  code=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Origin: https://spinpick.app' "${JSON_HEADER[@]}" -d "$BODY" "${BASE}/api/openrouter")
   [ "$code" = "429" ] && break
 done
 check '61st request from same IP → 429' 429 "$code"
