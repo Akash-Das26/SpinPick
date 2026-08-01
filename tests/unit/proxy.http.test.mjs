@@ -15,6 +15,7 @@ import { FAKE_KEY, TOKEN, PROD_ENV, AUTH_ENV, startServer, stopServer, stubUpstr
      2. PROXY_AUTH_TOKEN gate (no-Origin clients must present the token; 401
         otherwise, with WWW-Authenticate: Bearer per RFC 7235).
      3. GET /health (200 + keyConfigured, exempt from the token gate).
+     4. Per-IP rate limiting (60/min — the 61st request from the same IP → 429).
 
    Only the UPSTREAM OpenRouter call is mocked — via a pass-through fetch stub
    that lets localhost requests through to the real network. Everything else is
@@ -217,5 +218,63 @@ describe('proxy HTTP integration — PROXY_AUTH_TOKEN gate over real HTTP', () =
     const res = await fetch(`${baseUrl}/api/openrouter`, { method: 'OPTIONS' });
 
     expect(res.status).toBe(204);
+  });
+});
+
+describe('proxy HTTP integration — per-IP rate limiting over real HTTP', () => {
+  let server;
+  let baseUrl;
+  let upstreamFetch;
+
+  beforeEach(async () => {
+    upstreamFetch = stubUpstream();
+    ({ server, baseUrl } = await startServer(PROD_ENV));
+  });
+
+  afterEach(async () => {
+    await stopServer(server);
+    vi.unstubAllGlobals();
+  });
+
+  it('returns 429 after the 60/min per-IP limit is exhausted over real HTTP', async () => {
+    // 60 allowed requests pass the rate gate over the real socket; each fails
+    // body validation at 400 (empty messages) so no upstream call is needed.
+    const body = JSON.stringify({ model: 'm', messages: [] });
+    for (let i = 0; i < 60; i++) {
+      const res = await fetch(`${baseUrl}/api/openrouter`, {
+        method: 'POST',
+        headers: { Origin: 'https://spinpick.app', 'Content-Type': 'application/json' },
+        body,
+      });
+      expect(res.status).toBe(400);
+    }
+
+    // 61st request from the same IP (127.0.0.1) → rate limited on the wire
+    const limited = await fetch(`${baseUrl}/api/openrouter`, {
+      method: 'POST',
+      headers: { Origin: 'https://spinpick.app', 'Content-Type': 'application/json' },
+      body,
+    });
+
+    expect(limited.status).toBe(429);
+    expect(await limited.json()).toEqual({ error: 'Rate limit exceeded. Try again in a minute.' });
+    expect(upstreamFetch).not.toHaveBeenCalled();
+  }, 15000);
+
+  it('gives a fresh server instance a fresh rate-limit budget (buckets are per-server)', async () => {
+    // A second server has independent ipBuckets → its first request is NOT 429
+    const { server: secondServer, baseUrl: secondBaseUrl } = await startServer(PROD_ENV);
+    try {
+      const res = await fetch(`${secondBaseUrl}/api/openrouter`, {
+        method: 'POST',
+        headers: { Origin: 'https://spinpick.app', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'm', messages: [] }),
+      });
+
+      expect(res.status).toBe(400); // passed the rate gate — fresh bucket
+      expect(res.status).not.toBe(429);
+    } finally {
+      await stopServer(secondServer);
+    }
   });
 });
