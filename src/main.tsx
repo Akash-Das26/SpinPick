@@ -4,12 +4,12 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import * as Sentry from '@sentry/react'
 import './index.css'
 import styles from './main.module.css'
-import { App } from './App.jsx'
-import { ErrorBoundary } from './components/ErrorBoundary.jsx'
+import { App } from './App'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import './i18n'
 
 // Initialize Sentry error monitoring (only if DSN is configured)
-const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN;
+const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN
 if (SENTRY_DSN) {
   Sentry.init({
     dsn: SENTRY_DSN,
@@ -31,13 +31,13 @@ if (SENTRY_DSN) {
       'NetworkError when attempting to fetch resource',
       'AbortError: Fetch is aborted',
     ],
-  });
+  })
 }
 
 // eslint-disable-next-line react/only-export-components — used internally by router
-const CompareHub = lazy(() => import('./pages/CompareHub.jsx').then(m => ({ default: m.CompareHub })))
+const CompareHub = lazy(() => import('./pages/CompareHub').then(m => ({ default: m.CompareHub })))
 // eslint-disable-next-line react/only-export-components — used internally by router
-const ComparisonPage = lazy(() => import('./pages/ComparisonPage.jsx').then(m => ({ default: m.ComparisonPage })))
+const ComparisonPage = lazy(() => import('./pages/ComparisonPage').then(m => ({ default: m.ComparisonPage })))
 
 // eslint-disable-next-line react/only-export-components — used as fallback Suspense UI
 function PageLoader() {
