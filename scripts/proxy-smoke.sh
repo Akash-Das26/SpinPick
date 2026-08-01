@@ -7,8 +7,35 @@
 # per check, and exits non-zero on any failure. Safe to run in CI or locally.
 #
 # Usage:  ./scripts/proxy-smoke.sh [PORT]     (default port 8790)
-# Requires: bash, curl, node (proxy has no npm deps — Node built-ins only).
+# Requires: bash, curl, node >= 18 (proxy has no npm deps — Node built-ins only).
 set -euo pipefail
+
+# --- Fail fast: Node >= 18 is required --------------------------------------
+# server/proxy.mjs uses Node built-ins only (global fetch, AbortSignal.timeout,
+# server.closeAllConnections), all of which require Node >= 18. Guard here so a
+# missing/old runtime produces a clear message instead of a cryptic crash when
+# the proxy fails to boot. Pure-bash parsing (no sed/cut) so this works even on
+# a stripped PATH.
+if ! command -v node >/dev/null 2>&1; then
+  printf 'Error: node not found on PATH — server/proxy.mjs requires Node >= 18.\n' >&2
+  exit 1
+fi
+NODE_VERSION="$(node --version 2>/dev/null || true)"
+NODE_MAJOR="${NODE_VERSION#v}"   # strip leading 'v' (e.g. v20.11.1 → 20.11.1)
+NODE_MAJOR="${NODE_MAJOR%%.*}"   # take major (e.g. 20.11.1 → 20)
+# Guard against a hypothetical unexpected version format (e.g. leading whitespace)
+# so the comparison below fails with a clean message, not bash's cryptic
+# 'integer expression expected' under `set -e`.
+case "$NODE_MAJOR" in
+  ''|*[!0-9]*)
+    printf 'Error: unexpected node --version output: %s — expected v<major>.<minor>.<patch>.\n' "${NODE_VERSION:-<empty>}" >&2
+    exit 1
+    ;;
+esac
+if [ "$NODE_MAJOR" -lt 18 ]; then
+  printf 'Error: Node %s is too old — server/proxy.mjs requires Node >= 18.\n' "${NODE_VERSION:-unknown}" >&2
+  exit 1
+fi
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PORT="${1:-8790}"
