@@ -42,7 +42,8 @@ const sentryPlugin = hasAllSentrySecrets ? sentryVitePlugin({
 
 // CSP nonce for inline scripts
 const cspNonce = crypto.randomBytes(16).toString('base64');
-const CSP = ["default-src 'self'", "script-src 'self' 'nonce-{NONCE}' https://plausible.io", "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", "font-src 'self' https://fonts.gstatic.com", "img-src 'self' data:", "connect-src 'self' https://plausible.io", "frame-ancestors 'none'", "base-uri 'self'", "form-action 'self'"].join('; ');
+const CSP = ["default-src 'self'", "script-src 'self' 'unsafe-inline' 'nonce-{NONCE}' https://plausible.io", "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", "font-src 'self' https://fonts.gstatic.com", "img-src 'self' data:", "connect-src 'self' https://plausible.io", "frame-ancestors 'none'", "base-uri 'self'", "form-action 'self'"].join('; ');
+const isProd = process.env.NODE_ENV === 'production' || process.argv.includes('--mode=production');
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -79,10 +80,10 @@ export default defineConfig({
         }
       }]
     }
-  }), {
+  }), ...(isProd ? [{
     name: 'csp-nonce',
     transformIndexHtml(html) {
-      return html.replace('<script type="module" src="/src/main.jsx"></script>', `<script type="module" nonce="${cspNonce}" src="/src/main.jsx"></script>`);
+      return html.replace('<script type="module" src="/src/main.tsx"></script>', `<script type="module" nonce="${cspNonce}" src="/src/main.tsx"></script>`);
     },
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
@@ -90,7 +91,7 @@ export default defineConfig({
         next();
       });
     }
-  }, analyzer({
+  }] : []), analyzer({
     analyzerMode: 'static',
     openAnalyzer: false
   })].filter(Boolean),

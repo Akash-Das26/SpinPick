@@ -186,7 +186,22 @@ jobs:
         run: npm run build
 
       - name: Run E2E tests
-        run: npm run test:e2e
+        run: |
+          # Boot the dev server on 5173 (the e2e runner navigates to BASE_URL)
+          npx vite --port 5173 --strictPort > /tmp/vite-e2e.log 2>&1 &
+          VITE_PID=$!
+          # Wait for the server to become ready (up to 30s)
+          for i in $(seq 1 30); do
+            if curl -s -o /dev/null -w '%{http_code}' http://localhost:5173/ | grep -q 200; then
+              echo "dev server ready"
+              break
+            fi
+            sleep 1
+          done
+          npm run test:e2e
+          EXIT_CODE=$?
+          kill $VITE_PID 2>/dev/null || true
+          exit $EXIT_CODE
         env:
           BASE_URL: http://localhost:5173
 

@@ -1,6 +1,6 @@
 import { chromium } from 'playwright';
 
-const BASE = 'http://localhost:5173';
+const BASE = process.env.BASE_URL || 'http://localhost:5173';
 let passed = 0;
 let failed = 0;
 const failures = [];
@@ -134,8 +134,8 @@ async function main() {
     await input.clear();
     await input.fill('What movie should I watch tonight?');
     await page.getByRole('button', { name: /generate wheel/i }).click();
-    await page.waitForSelector('.wheel-disc path', { timeout: 10000 });
-    assert((await page.locator('.wheel-disc path').count()) >= 2, 'Not enough wheel paths');
+    await page.waitForSelector('[data-testid="wheel-disc"] path', { timeout: 10000 });
+    assert((await page.locator('[data-testid="wheel-disc"] path').count()) >= 2, 'Not enough wheel paths');
     await page.close();
   });
 
@@ -145,8 +145,8 @@ async function main() {
     await page.waitForSelector('input[aria-label*="decision"]', { timeout: 5000 });
 
     await page.locator('button.chip').first().click();
-    await page.waitForSelector('.wheel-disc path', { timeout: 10000 });
-    assert((await page.locator('.wheel-disc path').count()) >= 2, 'Not enough wheel paths');
+    await page.waitForSelector('[data-testid="wheel-disc"] path', { timeout: 10000 });
+    assert((await page.locator('[data-testid="wheel-disc"] path').count()) >= 2, 'Not enough wheel paths');
     await page.close();
   });
 
@@ -156,9 +156,9 @@ async function main() {
   await test('SPIN button shows verdict card', async () => {
     const page = await createPage(browser);
     await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 15000 });
-    await page.waitForSelector('.wheel-disc path', { timeout: 15000 });
+    await page.waitForSelector('[data-testid="wheel-disc"] path', { timeout: 15000 });
 
-    await page.locator('.wheel-hub__btn').click();
+    await page.locator('[data-testid="wheel-hub-btn"]').click();
     // Wait for verdict to appear (spin is ~3.5s)
     await page.waitForFunction(
       () => /the wheel landed|spinpick evaluated|reasoning|verdict/i.test(document.body.textContent),
@@ -173,7 +173,7 @@ async function main() {
   await test('Slices modal opens/closes via Escape', async () => {
     const page = await createPage(browser);
     await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 15000 });
-    await page.waitForSelector('.wheel-disc path', { timeout: 15000 });
+    await page.waitForSelector('[data-testid="wheel-disc"] path', { timeout: 15000 });
 
     await page.locator('button').filter({ hasText: /slices/i }).first().click();
     await page.waitForTimeout(800);
@@ -188,7 +188,7 @@ async function main() {
   await test('AI Tuner modal opens/closes', async () => {
     const page = await createPage(browser);
     await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 15000 });
-    await page.waitForSelector('.wheel-disc path', { timeout: 15000 });
+    await page.waitForSelector('[data-testid="wheel-disc"] path', { timeout: 15000 });
 
     await page.locator('button').filter({ hasText: /ai tuner/i }).first().click();
     await page.waitForTimeout(800);
@@ -203,7 +203,7 @@ async function main() {
   await test('Export modal shows PNG/CSV/JSON options', async () => {
     const page = await createPage(browser);
     await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 15000 });
-    await page.waitForSelector('.wheel-disc path', { timeout: 15000 });
+    await page.waitForSelector('[data-testid="wheel-disc"] path', { timeout: 15000 });
 
     await page.locator('button').filter({ hasText: /export/i }).first().click();
     await page.waitForTimeout(1000);
@@ -240,7 +240,7 @@ async function main() {
   await test('Tournament tab shows header, bracket log, and spin button', async () => {
     const page = await createPage(browser);
     await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 15000 });
-    await page.waitForSelector('.wheel-disc path', { timeout: 15000 });
+    await page.waitForSelector('[data-testid="wheel-disc"] path', { timeout: 15000 });
 
     // Navigate to Tournament tab
     await page.locator('button:has-text("Tournament")').first().click();
@@ -256,7 +256,7 @@ async function main() {
   await test('Spin 1v1 Match button appears and starts spinning', async () => {
     const page = await createPage(browser);
     await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 15000 });
-    await page.waitForSelector('.wheel-disc path', { timeout: 15000 });
+    await page.waitForSelector('[data-testid="wheel-disc"] path', { timeout: 15000 });
 
     await page.locator('button:has-text("Tournament")').first().click();
     await page.waitForTimeout(2000);
@@ -276,7 +276,7 @@ async function main() {
   await test('After spin animation, Advance Winner button appears', async () => {
     const page = await createPage(browser);
     await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 15000 });
-    await page.waitForSelector('.wheel-disc path', { timeout: 15000 });
+    await page.waitForSelector('[data-testid="wheel-disc"] path', { timeout: 15000 });
 
     await page.locator('button:has-text("Tournament")').first().click();
     await page.waitForTimeout(2000);
@@ -297,7 +297,7 @@ async function main() {
   await test('Advancing winner updates bracket log and moves to next match', async () => {
     const page = await createPage(browser);
     await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 15000 });
-    await page.waitForSelector('.wheel-disc path', { timeout: 15000 });
+    await page.waitForSelector('[data-testid="wheel-disc"] path', { timeout: 15000 });
 
     await page.locator('button:has-text("Tournament")').first().click();
     await page.waitForTimeout(2000);
@@ -328,7 +328,7 @@ async function main() {
   await test('Full tournament: spin through all 7 matches and crown a champion', async () => {
     const page = await createPage(browser);
     await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 15000 });
-    await page.waitForSelector('.wheel-disc path', { timeout: 15000 });
+    await page.waitForSelector('[data-testid="wheel-disc"] path', { timeout: 15000 });
 
     // Navigate to Tournament tab and wait for lazy load
     await page.locator('button:has-text("Tournament")').first().click();
@@ -375,7 +375,7 @@ async function main() {
   await test('Exit Tournament button returns to studio', async () => {
     const page = await createPage(browser);
     await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 15000 });
-    await page.waitForSelector('.wheel-disc path', { timeout: 15000 });
+    await page.waitForSelector('[data-testid="wheel-disc"] path', { timeout: 15000 });
 
     await page.locator('button:has-text("Tournament")').first().click();
     await page.waitForTimeout(2000);
@@ -555,7 +555,7 @@ async function main() {
     const inputVal = await studioInput.inputValue();
     assert(inputVal.includes('Test Custom Wheel'), `Custom wheel title "Test Custom Wheel" not found in studio input (got "${inputVal}")`);
     // Should also have wheel paths generated from the custom options
-    const paths = await page.locator('.wheel-disc path').count();
+    const paths = await page.locator('[data-testid="wheel-disc"] path').count();
     assert(paths >= 2, 'Custom wheel did not generate visible wheel paths');
     await page.close();
   });
@@ -618,7 +618,7 @@ async function main() {
     const inputVal = await studioInput.inputValue();
     assert(inputVal === presetTitle, `Preset title "${presetTitle}" not found in studio input (got "${inputVal}")`);
     // Should have wheel paths from preset options
-    const paths = await page.locator('.wheel-disc path').count();
+    const paths = await page.locator('[data-testid="wheel-disc"] path').count();
     assert(paths >= 2, 'Preset wheel did not generate visible wheel paths');
     await page.close();
   });
@@ -645,7 +645,7 @@ async function main() {
     await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 15000 });
 
     // Wait for the initial auto-generation (via setTimeout(0)) to finish
-    await page.waitForSelector('.wheel-disc path', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="wheel-disc"] path', { timeout: 10000 });
 
     // After completion, button should be enabled with 'Generate Wheel' text
     const genBtn = page.getByRole('button', { name: /generate wheel/i });
@@ -656,14 +656,14 @@ async function main() {
   await test('Wheel SPIN button is disabled while spinning', async () => {
     const page = await createPage(browser);
     await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 15000 });
-    await page.waitForSelector('.wheel-disc path', { timeout: 15000 });
+    await page.waitForSelector('[data-testid="wheel-disc"] path', { timeout: 15000 });
 
     // Click SPIN
-    await page.locator('.wheel-hub__btn').click();
+    await page.locator('[data-testid="wheel-hub-btn"]').click();
     await page.waitForTimeout(500);
 
     // Check the hub button shows spinning state
-    const hubBtn = page.locator('.wheel-hub__btn');
+    const hubBtn = page.locator('[data-testid="wheel-hub-btn"]');
     assert(await hubBtn.isDisabled(), 'SPIN button should be disabled while spinning');
     const btnText = await hubBtn.textContent();
     assert(btnText.includes('SPIN...'), `Expected SPIN... text but got "${btnText}"`);
@@ -677,10 +677,10 @@ async function main() {
   await test('Eliminate Winner & Respin button appears after verdict', async () => {
     const page = await createPage(browser);
     await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 15000 });
-    await page.waitForSelector('.wheel-disc path', { timeout: 15000 });
+    await page.waitForSelector('[data-testid="wheel-disc"] path', { timeout: 15000 });
 
     // Spin the wheel
-    await page.locator('.wheel-hub__btn').click();
+    await page.locator('[data-testid="wheel-hub-btn"]').click();
     await page.waitForFunction(
       () => /eliminate winner/i.test(document.body.textContent),
       { timeout: 12000 }
@@ -720,11 +720,11 @@ async function main() {
     await page.waitForTimeout(1500);
 
     // Should now be in studio tab with 3 options
-    const paths = await page.locator('.wheel-disc path').count();
+    const paths = await page.locator('[data-testid="wheel-disc"] path').count();
     assert(paths === 3, `Expected 3 wheel paths, got ${paths}`);
 
     // Spin 1 — pick a winner from 3 options
-    await page.locator('.wheel-hub__btn').click();
+    await page.locator('[data-testid="wheel-hub-btn"]').click();
     await page.waitForFunction(
       () => /eliminate winner/i.test(document.body.textContent),
       { timeout: 12000 }
@@ -736,7 +736,7 @@ async function main() {
     await page.waitForTimeout(1000);
 
     // Spin 2 — pick winner from 2 options
-    await page.locator('.wheel-hub__btn').click();
+    await page.locator('[data-testid="wheel-hub-btn"]').click();
     await page.waitForFunction(
       () => /eliminate winner/i.test(document.body.textContent),
       { timeout: 12000 }

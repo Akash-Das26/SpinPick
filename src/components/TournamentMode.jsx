@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Trophy, Swords, ArrowRight, CheckCircle2, Sparkles, X } from '../lib/icons';
 import confetti from 'canvas-confetti';
 import { useSound } from '../hooks/useSound';

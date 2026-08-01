@@ -227,7 +227,7 @@ export function WheelStage({
         </div>
 
         {/* SVG Wheel */}
-        <div ref={wheelElRef} className={styles.wheelStage__disc}>
+        <div ref={wheelElRef} className={styles.wheelStage__disc} data-testid="wheel-disc">
           <svg viewBox="-100 -100 200 200" aria-label="Decision spin wheel" role="img"
             className={styles.wheelStage__svg}>
             <title>Decision wheel with {slices.length} options</title>
@@ -291,6 +291,7 @@ export function WheelStage({
             disabled={isSpinning || options.length === 0}
             className={`${styles.wheelStage__hubBtn} ${isSpinning ? styles.wheelStage__hubBtnSpinning : ''}`}
             aria-label={isSpinning ? 'Wheel is spinning' : 'Spin the wheel'}
+            data-testid="wheel-hub-btn"
           >
             {isSpinning ? 'SPIN...' : 'SPIN'}
           </button>
