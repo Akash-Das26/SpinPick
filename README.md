@@ -199,6 +199,10 @@ templates often miss:
   scans staged changes with the same `.gitleaks.toml` allowlist. Install the
   hook with `pip install pre-commit && pre-commit install` (or run
   `npm run secret:scan` anytime to scan the whole repo)
+- **Docs integrity guard** — the same pre-commit config runs a local
+  `validate-docs` hook on every commit that keeps `GITHUB_PUSH_GUIDE.md` code
+  fences balanced and `docker-compose.yml` valid YAML
+  (`scripts/validate_docs.py`), so future docs edits can't break the guide
 - **CodeQL code scanning** — separate `.github/workflows/security.yml`
   (`init@v3`, `security-and-quality` queries) runs on every push/PR and weekly;
   results appear in the Security tab

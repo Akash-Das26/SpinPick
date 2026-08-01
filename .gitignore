@@ -20,6 +20,10 @@ dist-ssr
 test-results/
 trace.zip
 
+# Python (scripts/validate_docs.py pre-commit hook)
+__pycache__/
+*.py[cod]
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
