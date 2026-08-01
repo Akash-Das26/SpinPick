@@ -35,6 +35,9 @@ jobs:
         run: npm run lint
 
       - name: Run unit tests
+        # Includes the proxy security unit suite (tests/unit/proxy.test.mjs + aiService.proxy.test.mjs):
+        # origin allow-list (403), PROXY_AUTH_TOKEN gate (401 + WWW-Authenticate: Bearer),
+        # rate limiting (429), health/OPTIONS exemptions, and proxy-vs-offline routing.
         run: npm run test:unit
 
       - name: Build production
@@ -194,6 +197,13 @@ jobs:
 
       # server/proxy.mjs is zero-dependency (Node built-ins only), so no npm
       # install is needed — the smoke script starts its own isolated proxy.
+      # Proxy behavior is regression-tested in two places:
+      #   1. Unit: the lint-and-test job's `npm run test:unit` step runs the proxy
+      #      security suite — 36 tests in proxy.test.mjs (origin allow-list, token
+      #      gate, rate limit, WWW-Authenticate: Bearer, health/OPTIONS exemptions)
+      #      plus the proxy-routing suite in aiService.proxy.test.mjs (fallback).
+      #   2. Integration: this matrix exercises the live gates end-to-end with curl
+      #      (health 200, preflight 204, evil origin 403, token 401s, 429 rate limit).
       - name: Proxy security-matrix smoke test
         run: bash scripts/proxy-smoke.sh
 
