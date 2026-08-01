@@ -247,7 +247,8 @@ export function createProxyHandler(env = process.env) {
     // OPTIONS are handled above and are exempt.
     if (!isProxyAuthValid(origin, req.headers.authorization, proxyAuthToken)) {
       send(res, 401, { error: 'Unauthorized: missing or invalid PROXY_AUTH_TOKEN' }, origin, {
-        'WWW-Authenticate': 'Bearer', // RFC 7235: tell the client how to authenticate
+        // RFC 7235: advertise the auth scheme + realm so clients know how to retry
+        'WWW-Authenticate': 'Bearer realm="spinpick-proxy"',
       });
       return;
     }

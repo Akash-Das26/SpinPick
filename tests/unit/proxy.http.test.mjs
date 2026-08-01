@@ -205,7 +205,7 @@ describe('proxy HTTP integration — PROXY_AUTH_TOKEN gate over real HTTP', () =
     });
 
     expect(res.status).toBe(401);
-    expect(res.headers.get('www-authenticate')).toBe('Bearer');
+    expect(res.headers.get('www-authenticate')).toBe('Bearer realm="spinpick-proxy"');
     expect((await res.json()).error).toContain('PROXY_AUTH_TOKEN');
     expect(upstreamFetch).not.toHaveBeenCalled();
   });
@@ -218,7 +218,7 @@ describe('proxy HTTP integration — PROXY_AUTH_TOKEN gate over real HTTP', () =
     });
 
     expect(res.status).toBe(401);
-    expect(res.headers.get('www-authenticate')).toBe('Bearer'); // RFC 7235 on every unauthorized response
+    expect(res.headers.get('www-authenticate')).toBe('Bearer realm="spinpick-proxy"'); // RFC 7235 on every unauthorized response
     expect(upstreamFetch).not.toHaveBeenCalled();
   });
 

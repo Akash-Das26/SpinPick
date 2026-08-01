@@ -105,10 +105,10 @@ check 'no-Origin, wrong token → 401' 401 \
 check 'no-Origin, correct token → 400 (gate passed)' 400 \
   "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Authorization: Bearer super-secret-token-42' "${JSON_HEADER[@]}" -d "$BODY" "${BASE}/api/openrouter")"
 
-# RFC 7235 — the 401 must advertise the auth scheme so clients know how to retry
+# RFC 7235 — the 401 must advertise the auth scheme + realm so clients know how to retry
 WWW=$(curl -s -D - -o /dev/null -X POST "${JSON_HEADER[@]}" -d "$BODY" "${BASE}/api/openrouter" \
-  | tr -d '\r' | grep -i '^www-authenticate:' | awk '{print $2}' || true)
-check '401 includes WWW-Authenticate: Bearer' 'Bearer' "$WWW"
+  | tr -d '\r' | grep -i '^www-authenticate:' | awk -F': ' '{print $2}' || true)
+check '401 includes WWW-Authenticate: Bearer realm' 'Bearer realm="spinpick-proxy"' "$WWW"
 
 printf '\n== 5) Browser exemption ==\n'
 check 'browser (allowed origin), no token → 400, not 401' 400 \
