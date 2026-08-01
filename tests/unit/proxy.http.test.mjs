@@ -1,8 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createServer } from 'node:http';
-import { createProxyHandler } from '../../server/proxy.mjs';
-import { FAKE_KEY, TOKEN, PROD_ENV, AUTH_ENV } from '../helpers/httpMocks.mjs';
+import { FAKE_KEY, TOKEN, PROD_ENV, AUTH_ENV, startServer, stopServer, stubUpstream } from '../helpers/httpMocks.mjs';
 
 /* ==========================================================================
    HTTP-Level Integration Tests: server/proxy.mjs
@@ -26,50 +24,12 @@ import { FAKE_KEY, TOKEN, PROD_ENV, AUTH_ENV } from '../helpers/httpMocks.mjs';
    Runs under the `node` environment (not jsdom) since it needs real sockets.
    ========================================================================== */
 
-// Env fixtures come from tests/helpers/httpMocks.mjs (shared with proxy.test.mjs).
+// Env fixtures + real-server boot helpers come from tests/helpers/httpMocks.mjs
+// (shared with proxy.test.mjs and aiService.proxy.http.test.mjs).
 const VALID_BODY = JSON.stringify({
   model: 'openai/gpt-4o-mini',
   messages: [{ role: 'user', content: 'hi' }],
 });
-
-const realFetch = globalThis.fetch;
-
-/** Boot the real server on an ephemeral port (port 0 → OS-assigned). */
-function startServer(env) {
-  return new Promise((resolve, reject) => {
-    const server = createServer(createProxyHandler(env));
-    server.once('error', reject);
-    server.listen(0, '127.0.0.1', () => {
-      const { port } = server.address();
-      resolve({ server, baseUrl: `http://127.0.0.1:${port}` });
-    });
-  });
-}
-
-/** Close the server, force-closing any keep-alive sockets so close resolves. */
-function stopServer(server) {
-  return new Promise((resolve) => {
-    server.closeAllConnections?.();
-    server.close(resolve);
-  });
-}
-
-/**
- * Stub global fetch so ONLY the upstream OpenRouter call is mocked: localhost
- * requests (the test's own) pass through to the real network; anything else
- * (the proxy's call to openrouter.ai) hits the mock.
- */
-function stubUpstream() {
-  const upstreamFetch = vi.fn();
-  vi.stubGlobal('fetch', (url, init) => {
-    const u = String(url);
-    if (u.startsWith('http://127.0.0.1') || u.startsWith('http://localhost')) {
-      return realFetch(url, init);
-    }
-    return upstreamFetch(url, init);
-  });
-  return upstreamFetch;
-}
 
 function upstreamOk() {
   return { ok: true, status: 200, text: async () => '{"choices":[]}' };
