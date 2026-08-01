@@ -23,6 +23,16 @@ fi
 echo "✅ branch: $(git branch --show-current)"
 
 echo
+if [ -n "$(git status --porcelain)" ]; then
+  echo "⚠️  You have uncommitted changes — these will NOT be pushed:"
+  git status --short | head -10
+  if [ "${FORCE:-0}" != "1" ]; then
+    echo "Commit or stash them first, or re-run with FORCE=1 to push anyway."
+    exit 1
+  fi
+fi
+
+echo
 echo "=== 2) Point origin at the real repo ==="
 git remote set-url origin "$REPO_URL"
 git remote -v
