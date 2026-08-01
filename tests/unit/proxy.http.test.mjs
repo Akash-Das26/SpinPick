@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { FAKE_KEY, TOKEN, PROD_ENV, AUTH_ENV, startServer, stopServer, stubUpstream } from '../helpers/httpMocks.mjs';
+import { FAKE_KEY, TOKEN, PROD_ENV, AUTH_ENV, startServer, stopServer, stubUpstream, exhaustRateLimit } from '../helpers/httpMocks.mjs';
 
 /* ==========================================================================
    HTTP-Level Integration Tests: server/proxy.mjs
@@ -237,19 +237,12 @@ describe('proxy HTTP integration — per-IP rate limiting over real HTTP', () =>
   });
 
   it('returns 429 after the 60/min per-IP limit is exhausted over real HTTP', async () => {
-    // 60 allowed requests pass the rate gate over the real socket; each fails
-    // body validation at 400 (empty messages) so no upstream call is needed.
-    const body = JSON.stringify({ model: 'm', messages: [] });
-    for (let i = 0; i < 60; i++) {
-      const res = await fetch(`${baseUrl}/api/openrouter`, {
-        method: 'POST',
-        headers: { Origin: 'https://spinpick.app', 'Content-Type': 'application/json' },
-        body,
-      });
-      expect(res.status).toBe(400);
-    }
+    // Exhaust the per-IP budget over the real socket (shared helper; each of
+    // the 60 requests fails body validation at 400, so no upstream call).
+    await exhaustRateLimit(baseUrl);
 
     // 61st request from the same IP (127.0.0.1) → rate limited on the wire
+    const body = JSON.stringify({ model: 'm', messages: [] });
     const limited = await fetch(`${baseUrl}/api/openrouter`, {
       method: 'POST',
       headers: { Origin: 'https://spinpick.app', 'Content-Type': 'application/json' },

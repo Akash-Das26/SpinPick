@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { FAKE_KEY, PROD_ENV, AUTH_ENV, startServer, stopServer, stubUpstream } from '../helpers/httpMocks.mjs';
+import { FAKE_KEY, PROD_ENV, AUTH_ENV, startServer, stopServer, stubUpstream, exhaustRateLimit } from '../helpers/httpMocks.mjs';
 
 /* ==========================================================================
    HTTP Integration Tests: aiService ↔ server/proxy.mjs (live, end-to-end)
@@ -140,17 +140,10 @@ describe('aiService ↔ proxy HTTP integration — live end-to-end routing', () 
   });
 
   it('falls back to the offline engine when the live proxy rate-limits (429)', async () => {
-    // Exhaust the server's per-IP budget (60/min) over the real socket, so the
-    // aiService call below hits the 429 rate-limit gate instead of the upstream.
-    const body = JSON.stringify({ model: 'm', messages: [] });
-    for (let i = 0; i < 60; i++) {
-      const res = await fetch(`${baseUrl}/api/openrouter`, {
-        method: 'POST',
-        headers: { Origin: 'https://spinpick.app', 'Content-Type': 'application/json' },
-        body,
-      });
-      expect(res.status).toBe(400);
-    }
+    // Exhaust the server's per-IP budget (60/min) over the real socket via the
+    // shared helper, so the aiService call below hits the 429 rate-limit gate
+    // instead of the upstream.
+    await exhaustRateLimit(baseUrl);
 
     upstreamFetch.mockRejectedValue(new Error('must not be reached'));
     const aiService = await loadAiService(baseUrl);

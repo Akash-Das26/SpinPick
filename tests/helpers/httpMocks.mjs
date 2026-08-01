@@ -80,6 +80,28 @@ export function stubUpstream() {
 }
 
 /**
+ * Exhaust a real proxy server's per-IP rate budget (RATE_LIMIT = 60/min) over
+ * real HTTP by firing 60 POSTs to /api/openrouter that each pass the rate gate
+ * and fail body validation at 400 (empty messages, so no upstream call is
+ * made). After this resolves, the NEXT request from the same IP gets 429.
+ * Used by the rate-limit tests in proxy.http.test.mjs and
+ * aiService.proxy.http.test.mjs so the exhaust loop stays in one place.
+ */
+export async function exhaustRateLimit(baseUrl) {
+  const body = JSON.stringify({ model: 'm', messages: [] });
+  for (let i = 0; i < 60; i++) {
+    const res = await fetch(`${baseUrl}/api/openrouter`, {
+      method: 'POST',
+      headers: { Origin: 'https://spinpick.app', 'Content-Type': 'application/json' },
+      body,
+    });
+    if (res.status !== 400) {
+      throw new Error(`exhaustRateLimit: expected 400 on request ${i + 1}, got ${res.status}`);
+    }
+  }
+}
+
+/**
  * Minimal request mock — EventEmitter so readBody's data/end/error hooks work.
  * Emits the body stream on the next tick so the handler's readBody() listeners
  * are attached before data flows.
