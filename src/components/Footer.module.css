@@ -2,6 +2,18 @@
   margin-top: 80px;
   border-top: 1px solid var(--border-subtle);
   padding: 40px 0;
+  position: relative;
+}
+
+.footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(216, 255, 91, 0.3), transparent);
 }
 
 .footer__top {
@@ -10,43 +22,67 @@
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-.footer__logo-area {
+/* Camelcase variants (used in JSX via CSS Modules) */
+.footer__logoArea {
   display: flex;
   align-items: center;
   gap: 0.625rem;
 }
 
-.footer__logo-bubble {
+.footer__logoBubble {
   display: grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
   background: var(--accent-gradient);
+  box-shadow: 0 2px 10px rgba(216, 255, 91, 0.3);
 }
 
-.footer__brand-text {
+.footer__brandText {
   font-weight: 700;
   color: var(--text-primary);
   font-family: var(--font-display);
+  font-size: 0.9rem;
 }
 
-.footer__version-badge {
+.footer__versionBadge {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.25rem 0.6rem;
+  padding: 0.2rem 0.6rem;
   border-radius: 9999px;
   background: var(--bg-surface-2);
-  color: var(--text-secondary);
+  color: var(--text-muted);
   border: 1px solid var(--border-subtle);
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
 }
 
-.footer__nav-links {
+.footer__navLinks {
   display: flex;
   flex-wrap: wrap;
   gap: 1.25rem;
   font-size: 0.82rem;
+  color: var(--text-muted);
 }
+
+.footer__navLinks a {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.footer__navLinks a:hover {
+  color: var(--accent-lime);
+}
+
+/* Kebab-case aliases for backward compat */
+.footer__logo-area   { composes: footer__logoArea; }
+.footer__logo-bubble { composes: footer__logoBubble; }
+.footer__brand-text  { composes: footer__brandText; }
+.footer__version-badge { composes: footer__versionBadge; }
+.footer__nav-links   { composes: footer__navLinks; }

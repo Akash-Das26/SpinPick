@@ -33,49 +33,36 @@ export function StudioView({
   return (
     <div>
       {/* Hero */}
-      <div className="text-center mb-32">
+      <div className="text-center mb-36">
         <div className="hero-badge">
           <span aria-hidden="true" className="hero-badge-dot" />
-          Studio
+          AI Decision Studio · Live Physics
         </div>
 
-        <h1 className="font-black tracking-tight mb-12 text-4xl">
-          Type any <span className="accent-text">decision</span>. Spin.<br />
-          Keyword Boost Engine & 1v1 Tournaments.
+        <h1 className="font-extrabold tracking-tight mb-16 text-4xl sm:text-5xl lg:text-6xl">
+          Type any <span className="accent-text">decision</span>.<br />
+          Spin. Let the wheel pick.
         </h1>
 
-        <p className="text-secondary mx-auto mb-28 text-lg">
-          SpinPick combines real-time option synthesis, multi-criteria weight tuning, and bracket elimination tournaments — 100% free with zero watermarks.
-          <br /><span className="text-xs text-muted">
-            AI reasoning requires server-side proxy configuration.
-          </span>
+        <p className="text-secondary mx-auto mb-28 text-lg max-w-2xl leading-relaxed">
+          SpinPick turns any open-ended dilemma into a slick, weighted wheel of answers in one click — so you stop debating and start doing.
         </p>
 
-        {/* Take Tour Button */}
-        <button
-          className="btn btn-secondary btn-sm mt-8"
-          onClick={() => window.dispatchEvent(new CustomEvent('spinpick:start-tour'))}
-          aria-label="Start interactive tour"
-        >
-          <Sparkles size={14} aria-hidden="true" />
-          Take Tour
-        </button>
-
-        {/* Prompt Input */}
-        <div className="glass-panel-glow flex gap-8 mx-auto rounded-xl max-w-2xl">
+        {/* Prompt Input Row */}
+        <div className="glass-panel-glow flex flex-col sm:flex-row gap-8 mx-auto p-6 rounded-2xl max-w-2xl shadow-glow">
           <input
             type="text"
-            placeholder={`e.g. ${promptInput}`}
+            placeholder="e.g. What should I cook for dinner tonight?"
             value={promptInput}
             onChange={(e) => setPromptInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleGenerateOptions()}
             disabled={isGenerating || isSpinning}
             aria-label="Enter your decision question"
             autoFocus
-            className="flex-1 text-primary font-medium bg-transparent border-none outline-none text-lg px-6 py-4"
+            className="flex-1 text-primary font-medium bg-transparent border-none outline-none text-lg px-6 py-4 placeholder:text-muted"
           />
           <button
-            className="btn btn-primary rounded-lg px-8"
+            className="btn btn-primary rounded-xl px-24 py-14"
             onClick={() => handleGenerateOptions()}
             disabled={isGenerating || isSpinning || !promptInput.trim()}
             aria-busy={isGenerating}
@@ -83,13 +70,13 @@ export function StudioView({
             {isGenerating
               ? <RefreshCw size={18} aria-hidden="true" className="spinner" />
               : <Sparkles size={18} aria-hidden="true" />}
-            {isGenerating ? 'Generating…' : 'Generate Wheel'}
+            {isGenerating ? 'Generating…' : 'Spin it'}
           </button>
         </div>
 
         {/* Error banner */}
         {generateError && (
-          <div role="alert" className="text-danger text-sm rounded-sm mt-8 px-6 py-4">
+          <div role="alert" className="text-danger text-sm rounded-lg mt-12 px-6 py-4 bg-danger/10 border border-danger/30 max-w-2xl mx-auto">
             {generateError}
           </div>
         )}
@@ -98,9 +85,9 @@ export function StudioView({
         <div
           role="group"
           aria-label="Quick example prompts"
-          className="mt-16 flex flex-wrap gap-4 justify-center"
+          className="mt-20 flex flex-wrap gap-6 justify-center items-center"
         >
-          <span className="mono text-xs text-muted self-center">Quick Try:</span>
+          <span className="mono text-xs text-muted font-bold">TRY:</span>
           {QUICK_CHIPS.map((chip) => (
             <button
               key={chip}
@@ -112,6 +99,17 @@ export function StudioView({
               {chip}
             </button>
           ))}
+
+          {/* Interactive Tour Link */}
+          <button
+            className="chip hover:border-lime"
+            onClick={() => window.dispatchEvent(new CustomEvent('spinpick:start-tour'))}
+            aria-label="Start interactive tour"
+            style={{ borderColor: 'rgba(216, 255, 91, 0.3)', color: 'var(--accent-lime)' }}
+          >
+            <Sparkles size={13} aria-hidden="true" />
+            Take Tour
+          </button>
         </div>
       </div>
 
