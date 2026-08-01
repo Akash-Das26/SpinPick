@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { WheelStage } from '../components/WheelStage';
 import { ResultCard } from '../components/ResultCard';
 import { CriteriaTuner } from '../components/CriteriaTuner';
-import { HowItWorks } from '../components/HowItWorks';
 import { QUICK_CHIPS } from '../data/presets';
 import { Sparkles, RefreshCw } from '../lib/icons';
+
+const HowItWorks = lazy(() => import('../components/HowItWorks').then(m => ({ default: m.HowItWorks })));
 
 export function StudioView({
   promptInput,
@@ -162,7 +163,9 @@ export function StudioView({
         )}
       </div>
 
-      <HowItWorks />
+      <Suspense fallback={<div className="text-center py-20"><RefreshCw size={24} className="spinner mx-auto" /><p className="text-muted mt-4">Loading HowItWorks...</p></div>}>
+        <HowItWorks />
+      </Suspense>
     </div>
   );
 }

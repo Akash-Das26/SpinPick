@@ -1,15 +1,22 @@
-import { readFileSync } from 'node:fs'
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { sentryVitePlugin } from '@sentry/vite-plugin'
-import { VitePWA } from 'vite-plugin-pwa'
-import { analyzer } from 'vite-bundle-analyzer'
-import crypto from 'node:crypto'
+/// <reference types="vitest/config" />
+import { readFileSync } from 'node:fs';
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { sentryVitePlugin } from '@sentry/vite-plugin';
+import { VitePWA } from 'vite-plugin-pwa';
+import { analyzer } from 'vite-bundle-analyzer';
+import crypto from 'node:crypto';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
+import { playwright } from '@vitest/browser-playwright';
+const dirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url));
 
-const testSetup = './tests/setup.js'
+// More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
+const testSetup = './tests/setup.js';
 
 // Single source of truth for the app version (used by <Footer /> via __APP_VERSION__)
-const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'))
+const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
 
 // Sentry source map upload (production only). All three secrets are required
 // together — a partial config would silently skip uploads and leave production
@@ -17,114 +24,79 @@ const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 
 const sentrySecrets = {
   SENTRY_ORG: process.env.SENTRY_ORG,
   SENTRY_PROJECT: process.env.SENTRY_PROJECT,
-  SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
-}
-const hasAnySentrySecret = Object.values(sentrySecrets).some(Boolean)
-const hasAllSentrySecrets = Object.values(sentrySecrets).every(Boolean)
-
+  SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN
+};
+const hasAnySentrySecret = Object.values(sentrySecrets).some(Boolean);
+const hasAllSentrySecrets = Object.values(sentrySecrets).every(Boolean);
 if (hasAnySentrySecret && !hasAllSentrySecrets) {
-  throw new Error(
-    'Sentry source map upload requires ALL of SENTRY_ORG, SENTRY_PROJECT and SENTRY_AUTH_TOKEN ' +
-      '(see .env.example and README). Configure all three in CI secrets or none of them.'
-  )
+  throw new Error('Sentry source map upload requires ALL of SENTRY_ORG, SENTRY_PROJECT and SENTRY_AUTH_TOKEN ' + '(see .env.example and README). Configure all three in CI secrets or none of them.');
 }
-
-const sentryPlugin = hasAllSentrySecrets
-  ? sentryVitePlugin({
-      org: sentrySecrets.SENTRY_ORG,
-      project: sentrySecrets.SENTRY_PROJECT,
-      authToken: sentrySecrets.SENTRY_AUTH_TOKEN,
-      sourcemaps: {
-        assets: './dist/**',
-      },
-    })
-  : null;
+const sentryPlugin = hasAllSentrySecrets ? sentryVitePlugin({
+  org: sentrySecrets.SENTRY_ORG,
+  project: sentrySecrets.SENTRY_PROJECT,
+  authToken: sentrySecrets.SENTRY_AUTH_TOKEN,
+  sourcemaps: {
+    assets: './dist/**'
+  }
+}) : null;
 
 // CSP nonce for inline scripts
 const cspNonce = crypto.randomBytes(16).toString('base64');
-const CSP = [
-  "default-src 'self'",
-  "script-src 'self' 'nonce-{NONCE}' https://plausible.io",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "font-src 'self' https://fonts.gstatic.com",
-  "img-src 'self' data:",
-  "connect-src 'self' https://plausible.io",
-  "frame-ancestors 'none'",
-  "base-uri 'self'",
-  "form-action 'self'"
-].join('; ');
+const CSP = ["default-src 'self'", "script-src 'self' 'nonce-{NONCE}' https://plausible.io", "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", "font-src 'self' https://fonts.gstatic.com", "img-src 'self' data:", "connect-src 'self' https://plausible.io", "frame-ancestors 'none'", "base-uri 'self'", "form-action 'self'"].join('; ');
 
 // https://vite.dev/config/
 export default defineConfig({
   define: {
     // Injected at build time from package.json — never hardcode versions in UI
-    __APP_VERSION__: JSON.stringify(pkg.version),
+    __APP_VERSION__: JSON.stringify(pkg.version)
   },
-  plugins: [
-    react(),
-    sentryPlugin,
-    VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['icons/*.svg'],
-      manifest: false, // we provide our own manifest.json in public/
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,svg,png,woff2,woff,ttf}'],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-cache',
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
-              },
-            },
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'gstatic-fonts-cache',
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
-              },
-            },
-          },
-        ],
-      },
-    }),
-    {
-      name: 'csp-nonce',
-      transformIndexHtml(html) {
-        return html.replace(
-          '<script type="module" src="/src/main.jsx"></script>',
-          `<script type="module" nonce="${cspNonce}" src="/src/main.jsx"></script>`
-        );
-      },
-      configureServer(server) {
-        server.middlewares.use((req, res, next) => {
-          res.setHeader('Content-Security-Policy', 
-            CSP.replace('{NONCE}', cspNonce)
-          );
-          next();
-        });
-      }
+  plugins: [react(), sentryPlugin, VitePWA({
+    registerType: 'autoUpdate',
+    includeAssets: ['icons/*.svg'],
+    manifest: false,
+    // we provide our own manifest.json in public/
+    workbox: {
+      globPatterns: ['**/*.{js,css,html,ico,svg,png,woff2,woff,ttf}'],
+      runtimeCaching: [{
+        urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+        handler: 'CacheFirst',
+        options: {
+          cacheName: 'google-fonts-cache',
+          expiration: {
+            maxEntries: 10,
+            maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+          }
+        }
+      }, {
+        urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+        handler: 'CacheFirst',
+        options: {
+          cacheName: 'gstatic-fonts-cache',
+          expiration: {
+            maxEntries: 10,
+            maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+          }
+        }
+      }]
+    }
+  }), {
+    name: 'csp-nonce',
+    transformIndexHtml(html) {
+      return html.replace('<script type="module" src="/src/main.jsx"></script>', `<script type="module" nonce="${cspNonce}" src="/src/main.jsx"></script>`);
     },
-    analyzer({
-      analyzerMode: 'static',
-      openAnalyzer: false,
-    }),
-  ].filter(Boolean),
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        res.setHeader('Content-Security-Policy', CSP.replace('{NONCE}', cspNonce));
+        next();
+      });
+    }
+  }, analyzer({
+    analyzerMode: 'static',
+    openAnalyzer: false
+  })].filter(Boolean),
   server: {
     // serve index.html for all paths during development (SPA routing)
-    historyApiFallback: true,
-  },
-  test: {
-    environment: 'jsdom',
-    setupFiles: [testSetup],
-    globals: true,
+    historyApiFallback: true
   },
   build: {
     // Target modern browsers for smaller output
@@ -165,7 +137,7 @@ export default defineConfig({
           }
         },
         // Optimize asset file naming for cache busting
-        assetFileNames: (assetInfo) => {
+        assetFileNames: assetInfo => {
           const info = assetInfo.name.split('.');
           const ext = info[info.length - 1];
           if (/\.(png|jpe?g|gif|svg|webp|avif)$/.test(assetInfo.name)) {
@@ -177,8 +149,37 @@ export default defineConfig({
           return `assets/[name]-[hash].${ext}`;
         },
         chunkFileNames: 'assets/[name]-[hash].js',
-        entryFileNames: 'assets/[name]-[hash].js',
-      },
-    },
+        entryFileNames: 'assets/[name]-[hash].js'
+      }
+    }
   },
-})
+  test: {
+    projects: [{
+      extends: true,
+      test: {
+        environment: 'jsdom',
+        setupFiles: [testSetup],
+        globals: true
+      }
+    }, {
+      extends: true,
+      plugins: [
+      // The plugin will run tests for the stories defined in your Storybook config
+      // See options at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon#storybooktest
+      storybookTest({
+        configDir: path.join(dirname, '.storybook')
+      })],
+      test: {
+        name: 'storybook',
+        browser: {
+          enabled: true,
+          headless: true,
+          provider: playwright({}),
+          instances: [{
+            browser: 'chromium'
+          }]
+        }
+      }
+    }]
+  }
+});
