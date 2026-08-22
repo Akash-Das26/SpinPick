@@ -13,9 +13,14 @@
 #   bash scripts/merge-dependabot.sh              # merge safe PRs
 #   bash scripts/merge-dependabot.sh --dry-run    # preview only
 #   bash scripts/merge-dependabot.sh --close-conflicts  # close conflicting PRs
+#
+# Version: 2.0
 # ==========================================================================
 
 set -euo pipefail
+
+# Ensure gh CLI is in PATH
+export PATH="$HOME/.local/bin:$PATH"
 
 REPO="Akash-Das26/SpinPick"
 
@@ -60,7 +65,7 @@ def main():
 
     print()
     print("═══════════════════════════════════════════════════════════")
-    print("  Dependabot PR Auto-Merger")
+    print("  Dependabot PR Auto-Merger v2.0")
     print("═══════════════════════════════════════════════════════════")
     print()
 
@@ -163,12 +168,6 @@ def main():
     print(f"  {YELLOW}Skipped:   {skipped} (major bumps, conflicts, or CI issues){NC}")
     print(f"  {RED}Failed:    {failed}{NC}")
     print(f"  {YELLOW}Closed:    {closed} (conflicting PRs){NC}")
-    print()
-    print("  ⚠️  NOT merged (major version bumps — review manually):")
-    print("     PR #1  — actions/setup-node 4 → 7")
-    print("     PR #3  — actions/checkout 4 → 7")
-    print("     PR #4  — react-router 7 → 8 (pinned for compatibility)")
-    print("     PR #7  — github/codeql-action 3 → 4")
     print()
     print("═══════════════════════════════════════════════════════════")
 
