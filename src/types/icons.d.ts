@@ -87,5 +87,5 @@ declare module '../lib/icons' {
   export const Flame: LucideIcon;
   export const CheckCircle2: LucideIcon;
   export const SparklesIcon: LucideIcon;
-  export const Link2: LucideIcon;
+
 }

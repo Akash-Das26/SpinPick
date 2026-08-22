@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trophy, Copy, Check, RotateCcw, AlertTriangle, ArrowRight, Bookmark, Share2, Link2 } from '../lib/icons';
+import { Trophy, Copy, Check, RotateCcw, AlertTriangle, ArrowRight, Bookmark, Share2, Link } from '../lib/icons';
 import { shareVerdict, buildVerdictPermalink } from '../lib/share';
 import styles from './ResultCard.module.css';
 
@@ -158,7 +158,7 @@ export function ResultCard({
         </button>
 
         <button className="btn btn-secondary" onClick={handleShareLink} aria-label="Copy shareable link to verdict">
-          {linkCopied ? <Check size={16} color="var(--success)" aria-hidden="true" /> : <Link2 size={16} aria-hidden="true" />}
+          {linkCopied ? <Check size={16} color="var(--success)" aria-hidden="true" /> : <Link size={16} aria-hidden="true" />}
           {linkCopied ? 'Link Copied!' : 'Share Link'}
         </button>
 

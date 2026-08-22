@@ -31,7 +31,7 @@ export {
   Info,
   Key,
   LayoutGrid,
-  Link2,
+  Link,
   Menu,
   MessageSquare,
   Minus,

@@ -34,6 +34,9 @@ jobs:
       - name: Run lint
         run: npm run lint
 
+      - name: Type check
+        run: npx tsc --noEmit
+
       - name: Run unit tests
         # Proxy security behavior (origin allow-list + token gate) is regression-tested
         # right here via `npm run test:unit`:
