@@ -37,7 +37,15 @@ jobs:
       - name: Type check
         run: npx tsc --noEmit
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
       - name: Install Playwright browsers (for Storybook unit tests)
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium
 
       - name: Run unit tests
@@ -79,7 +87,7 @@ jobs:
 
   validate-seo:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     permissions:
       contents: read
     steps:
@@ -89,85 +97,37 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
 
       - name: Install XML tools
-        run: sudo apt-get update && sudo apt-get install -y libxml2-utils
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq libxml2-utils
 
-      - name: Validate robots.txt exists
+      - name: Validate SEO assets
         run: |
-          if [ ! -f public/robots.txt ]; then
-            echo "❌ robots.txt missing"
-            exit 1
-          fi
-          echo "✅ robots.txt exists"
+          echo "🔍 Validating robots.txt..."
+          test -f public/robots.txt || { echo "❌ robots.txt missing"; exit 1; }
+          grep -q "User-agent:" public/robots.txt || { echo "❌ robots.txt missing User-agent"; exit 1; }
+          grep -q "Sitemap:" public/robots.txt || { echo "❌ robots.txt missing Sitemap reference"; exit 1; }
+          echo "✅ robots.txt valid"
 
-      - name: Validate robots.txt content
-        run: |
-          if ! grep -q "User-agent:" public/robots.txt; then
-            echo "❌ robots.txt missing User-agent"
-            exit 1
-          fi
-          if ! grep -q "Sitemap:" public/robots.txt; then
-            echo "❌ robots.txt missing Sitemap reference"
-            exit 1
-          fi
-          echo "✅ robots.txt content valid"
+          echo "🔍 Validating sitemap.xml..."
+          test -f public/sitemap.xml || { echo "❌ sitemap.xml missing"; exit 1; }
+          xmllint --noout public/sitemap.xml || { echo "❌ sitemap.xml malformed"; exit 1; }
+          grep -q "https://spinpick.app/" public/sitemap.xml || { echo "❌ sitemap.xml missing homepage URL"; exit 1; }
+          grep -q "https://spinpick.app/compare" public/sitemap.xml || { echo "❌ sitemap.xml missing compare page URL"; exit 1; }
+          echo "✅ sitemap.xml valid"
 
-      - name: Validate sitemap.xml exists
-        run: |
-          if [ ! -f public/sitemap.xml ]; then
-            echo "❌ sitemap.xml missing"
-            exit 1
-          fi
-          echo "✅ sitemap.xml exists"
-
-      - name: Validate sitemap.xml is well-formed XML
-        run: |
-          xmllint --noout public/sitemap.xml
-          echo "✅ sitemap.xml is well-formed"
-
-      - name: Validate sitemap.xml has required URLs
-        run: |
-          if ! grep -q "https://spinpick.app/" public/sitemap.xml; then
-            echo "❌ sitemap.xml missing homepage URL"
-            exit 1
-          fi
-          if ! grep -q "https://spinpick.app/compare" public/sitemap.xml; then
-            echo "❌ sitemap.xml missing compare page URL"
-            exit 1
-          fi
-          echo "✅ sitemap.xml has required URLs"
-
-      - name: Validate manifest.json exists
-        run: |
-          if [ ! -f public/manifest.json ]; then
-            echo "❌ manifest.json missing"
-            exit 1
-          fi
-          echo "✅ manifest.json exists"
-
-      - name: Validate manifest.json is valid JSON
-        run: |
-          node -e "JSON.parse(require('fs').readFileSync('public/manifest.json', 'utf8'))"
-          echo "✅ manifest.json is valid JSON"
-
-      - name: Validate manifest.json has required fields
-        run: |
+          echo "🔍 Validating manifest.json..."
+          test -f public/manifest.json || { echo "❌ manifest.json missing"; exit 1; }
           node -e "
-            const m = require('./public/manifest.json');
+            const m = JSON.parse(require('fs').readFileSync('public/manifest.json', 'utf8'));
             const required = ['name', 'short_name', 'start_url', 'display', 'icons'];
             for (const field of required) {
-              if (!m[field]) {
-                console.error('❌ manifest.json missing field:', field);
-                process.exit(1);
-              }
+              if (!m[field]) { console.error('❌ manifest.json missing field:', field); process.exit(1); }
             }
-            console.log('✅ manifest.json has required fields');
-          "
+          " || exit 1
+          echo "✅ manifest.json valid"
+
+          echo "✅ All SEO validations passed"
 
   e2e:
     runs-on: ubuntu-latest
@@ -187,9 +147,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
       - name: Install Playwright Chromium (CI runner)
-        # npm ci does NOT download Playwright browsers since v1.38; the e2e
-        # runner uses Playwright's bundled Chromium when CI is set.
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium
 
       - name: Build
