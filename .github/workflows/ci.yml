@@ -37,6 +37,9 @@ jobs:
       - name: Type check
         run: npx tsc --noEmit
 
+      - name: Install Playwright browsers (for Storybook unit tests)
+        run: npx playwright install --with-deps chromium
+
       - name: Run unit tests
         # Proxy security behavior (origin allow-list + token gate) is regression-tested
         # right here via `npm run test:unit`:
@@ -45,6 +48,7 @@ jobs:
         #     rate limiting 429, health/OPTIONS exemptions, proxy-vs-offline routing)
         #   - HTTP-level integration suite: tests/unit/proxy.http.test.mjs — boots the
         #     real server on an ephemeral port and drives the same gates with real fetch
+        #   - Storybook tests: src/stories/*.stories.ts (requires Playwright Chromium)
         run: npm run test:unit
 
       - name: Build production
