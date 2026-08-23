@@ -9,6 +9,10 @@ export interface ConfettiTriggerOptions {
 }
 
 export function fireWinningConfetti(options: ConfettiTriggerOptions = {}) {
+  // Respect prefers-reduced-motion
+  if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+    return;
+  }
   const {
     intensity = 'normal',
     durationSeconds = 3,

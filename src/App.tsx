@@ -264,7 +264,7 @@ export default function App() {
         mode,
         totalParticipants: activeItems.length,
       };
-      setHistory((prev) => [newHistoryItem, ...prev]);
+      setHistory((prev) => [newHistoryItem, ...prev].slice(0, 500));
 
       // If in multi-winner mode, accumulate winner
       if (mode === 'multi-winner') {
@@ -290,10 +290,16 @@ export default function App() {
       const activeTag = document.activeElement?.tagName.toLowerCase();
       if (activeTag === 'input' || activeTag === 'textarea') return;
 
-      if (e.code === 'Space') {
+      // Don't trigger spin/sound hotkeys when any modal is open
+      const anyModalOpen = showWinnerModal || showAuthModal || showShareModal ||
+        showSavedWheelsModal || showSettingsModal || showHistoryDrawer ||
+        showTeamsModal || showQuickFlipModal || showExporterModal ||
+        showTournamentModal;
+
+      if (e.code === 'Space' && !anyModalOpen) {
         e.preventDefault();
         handleTriggerSpin();
-      } else if (e.key === 'm' || e.key === 'M') {
+      } else if ((e.key === 'm' || e.key === 'M') && !anyModalOpen) {
         e.preventDefault();
         setConfig((prev) => ({ ...prev, enableSound: !prev.enableSound }));
         sound.playPop(true);
@@ -307,7 +313,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleTriggerSpin, isFullscreen]);
+  }, [handleTriggerSpin, isFullscreen, showWinnerModal, showAuthModal, showShareModal, showSavedWheelsModal, showSettingsModal, showHistoryDrawer, showTeamsModal, showQuickFlipModal, showExporterModal, showTournamentModal]);
 
   // Item management handlers
   const handleAddItem = (item: Omit<WheelItem, 'id'>) => {
