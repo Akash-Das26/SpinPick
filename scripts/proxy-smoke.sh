@@ -64,7 +64,7 @@ check() { # name expected actual
   OPENROUTER_API_KEY="test-api-key-1234567890" \
   NODE_ENV="production" \
   PORT="$PORT" \
-  node server/proxy.mjs
+  node --env-file=server/.env server/proxy.mjs
 ) >/tmp/spinpick-proxy-smoke.log 2>&1 &
 PROXY_PID=$!
 trap 'kill "$PROXY_PID" 2>/dev/null || true; wait "$PROXY_PID" 2>/dev/null || true' EXIT
