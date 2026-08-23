@@ -1,5 +1,5 @@
 import React from 'react';
-import { WheelConfig, WheelTheme, PointerPosition, WheelFontFamily } from '../types';
+import { WheelConfig, WheelTheme, PointerPosition } from '../types';
 import { WHEEL_THEMES, WHEEL_FONTS } from '../utils/themes';
 import {
   Settings,
@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { sound } from '../utils/audio';
 import { fireWinningConfetti } from '../utils/confetti';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface WheelSettingsModalProps {
   isOpen: boolean;
@@ -36,6 +37,8 @@ export const WheelSettingsModal: React.FC<WheelSettingsModalProps> = ({
   onUpdateConfig,
   onSelectTheme,
 }) => {
+  const modalRef = useModalA11y({ isOpen, onClose });
+
   if (!isOpen) return null;
 
   const pointerPositions: { id: PointerPosition; label: string }[] = [
@@ -60,6 +63,7 @@ export const WheelSettingsModal: React.FC<WheelSettingsModalProps> = ({
     >
       <div
         id="settings-modal-content"
+        ref={modalRef as React.RefObject<HTMLDivElement>}
         className="relative w-full max-w-2xl overflow-hidden rounded-2xl bg-[#080810]/95 border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.8)] backdrop-blur-2xl p-6 space-y-6 max-h-[88vh] overflow-y-auto custom-scrollbar transform animate-scale-up"
         onClick={(e) => e.stopPropagation()}
       >

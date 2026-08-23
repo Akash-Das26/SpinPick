@@ -40,12 +40,6 @@
       "short_name": "Decide",
       "description": "Start a new decision wheel spin",
       "url": "/?new=true"
-    },
-    {
-      "name": "Compare Tools",
-      "short_name": "Compare",
-      "description": "Compare SpinPick with alternatives",
-      "url": "/compare"
     }
   ],
   "related_applications": [],

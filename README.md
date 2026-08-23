@@ -72,7 +72,7 @@ Restart the dev server afterward.
 - `npm run lint` — run oxlint
 - `npm run secret:scan` — run gitleaks secret scan
 - `npm run proxy` — start the OpenRouter backend proxy
-- `npm run test:unit` — run Vitest unit tests (145 tests)
+- `npm run test:unit` — run Vitest unit tests (31 tests)
 - `npm run test:e2e` — run Playwright E2E tests
 - `npm run test:e2e:ui` — run Playwright tests in headed mode
 
@@ -90,27 +90,18 @@ The app is a static frontend and can be deployed anywhere that serves built asse
 The project includes a production-ready GitHub Actions workflow (`.github/workflows/ci.yml`) that runs:
 - Linting (oxlint)
 - Type checking (tsc --noEmit)
-- Unit tests (145 tests)
+- Unit tests (31 tests)
 - Production build
 - E2E tests with Playwright
 
 ### Security features
 
-- ✅ Rate limiting on proxy (60 req/min/IP)
-- ✅ CSP headers with nonce-based CSP
-- ✅ Rate limiting on proxy (60 req/min/IP)
-- ✅ CSP headers with nonce-based CSP
-- ✅ Proxy enforces origin allow-list
-- ✅ API key never leaves server
-- ✅ Rate limiting on proxy (60 req/min/IP)
-- ✅ CSP headers with nonce-based CSP
-- ✅ Proxy enforces origin allow-list
-- ✅ API key never leaves server
-- ✅ CSP headers with nonce-based CSP
 - ✅ Server-side OpenRouter proxy with origin allow-list
+- ✅ Rate limiting on proxy (60 req/min/IP)
+- ✅ CSP headers with nonce-based CSP
+- ✅ API key never leaves server
 - ✅ Secure Shuffle + secureRandomInt using `crypto.getRandomValues()`
 - ✅ Color schemes only vibrant colors (WCAG AA vs `#141422`)
-- ✅ Secure Random Int used for winner selection
 - ✅ prefers-reduced-motion respected
 - ✅ Wheel SVG screen reader support with live region announcements
 - ✅ Visual bracket tree for Tournament

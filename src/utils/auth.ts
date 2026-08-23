@@ -1,4 +1,4 @@
-import { UserProfile, SavedWheel } from '../types';
+import { UserProfile } from '../types';
 
 // Web Crypto SHA-256 helper for client-side password hashing
 async function hashPassword(password: string, salt: string): Promise<string> {
@@ -85,9 +85,6 @@ export const authService = {
     const salt = crypto.randomUUID();
     const passwordHash = await hashPassword(password, salt);
 
-    // Dynamic clean avatar SVG / initials color
-    const colors = ['#6366f1', '#ec4899', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'];
-    const avatarColor = colors[Math.floor(Math.random() * colors.length)];
     const initials = cleanName.slice(0, 2).toUpperCase();
 
     const newUser: StoredUserAccount = {

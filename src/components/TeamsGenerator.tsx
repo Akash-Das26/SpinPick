@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { WheelItem, TeamGroup } from '../types';
-import { Users, Shuffle, Copy, Check, Sparkles, X } from 'lucide-react';
+import { Users, Shuffle, Copy, Check, X } from 'lucide-react';
 import { sound } from '../utils/audio';
 import { secureShuffle } from '../utils/random';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface TeamsGeneratorProps {
   items: WheelItem[];
@@ -27,33 +28,50 @@ export const TeamsGenerator: React.FC<TeamsGeneratorProps> = ({ items, isOpen, o
   const [teams, setTeams] = useState<TeamGroup[]>([]);
   const [copied, setCopied] = useState(false);
 
-  const generateTeams = () => {
+  // Regenerate teams when modal opens or inputs change.
+  // Ref-based guard avoids setState-in-effect on every re-render.
+  const prevOpenRef = useRef(isOpen);
+  const prevNumTeamsRef = useRef(numTeams);
+  const prevItemsRef = useRef(activeItems);
+  useEffect(() => {
+    const justOpened = isOpen && !prevOpenRef.current;
+    const inputsChanged = (numTeams !== prevNumTeamsRef.current || activeItems !== prevItemsRef.current) && isOpen;
+    prevOpenRef.current = isOpen;
+    prevNumTeamsRef.current = numTeams;
+    prevItemsRef.current = activeItems;
+    if ((justOpened || inputsChanged) && activeItems.length > 0) {
+      sound.playPop(true);
+      const shuffled = secureShuffle(activeItems);
+      const actualCount = Math.min(numTeams, Math.max(1, activeItems.length));
+      const newTeams: TeamGroup[] = Array.from({ length: actualCount }, (_, i) => ({
+        teamName: TEAM_PRESETS[i % TEAM_PRESETS.length].name,
+        color: TEAM_PRESETS[i % TEAM_PRESETS.length].color,
+        members: [],
+      }));
+      shuffled.forEach((item, index) => {
+        newTeams[index % actualCount].members.push(item);
+      });
+      setTeams(newTeams);
+    }
+  }, [isOpen, numTeams, activeItems]);
+
+  const handleReshuffle = useCallback(() => {
     if (activeItems.length === 0) return;
-
     sound.playPop(true);
-    // Shuffle copy of active items
     const shuffled = secureShuffle(activeItems);
-
     const actualCount = Math.min(numTeams, Math.max(1, activeItems.length));
     const newTeams: TeamGroup[] = Array.from({ length: actualCount }, (_, i) => ({
       teamName: TEAM_PRESETS[i % TEAM_PRESETS.length].name,
       color: TEAM_PRESETS[i % TEAM_PRESETS.length].color,
       members: [],
     }));
-
     shuffled.forEach((item, index) => {
-      const targetTeam = index % actualCount;
-      newTeams[targetTeam].members.push(item);
+      newTeams[index % actualCount].members.push(item);
     });
-
     setTeams(newTeams);
-  };
+  }, [activeItems, numTeams]);
 
-  useEffect(() => {
-    if (isOpen) {
-      generateTeams();
-    }
-  }, [isOpen, numTeams, items]);
+  const modalRef = useModalA11y({ isOpen, onClose });
 
   if (!isOpen) return null;
 
@@ -80,6 +98,7 @@ export const TeamsGenerator: React.FC<TeamsGeneratorProps> = ({ items, isOpen, o
     >
       <div
         id="teams-generator-content"
+        ref={modalRef as React.RefObject<HTMLDivElement>}
         className="relative w-full max-w-2xl overflow-hidden rounded-2xl bg-[#080810]/95 border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.8)] backdrop-blur-2xl p-6 space-y-5 transform animate-scale-up"
         onClick={(e) => e.stopPropagation()}
       >
@@ -129,7 +148,7 @@ export const TeamsGenerator: React.FC<TeamsGeneratorProps> = ({ items, isOpen, o
           <div className="flex items-center gap-2">
             <button
               id="reshuffle-teams-btn"
-              onClick={generateTeams}
+              onClick={handleReshuffle}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/30 text-xs font-bold transition-all"
             >
               <Shuffle className="w-3.5 h-3.5" />

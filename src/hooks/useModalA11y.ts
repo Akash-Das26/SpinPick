@@ -54,6 +54,7 @@ export function useModalA11y({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
+        e.stopPropagation();
         onClose();
         return;
       }

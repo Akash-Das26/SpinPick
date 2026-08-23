@@ -17,7 +17,6 @@ import {
   Check,
   Image as ImageIcon,
   X,
-  Upload,
   Wand2,
   Brain,
   Loader2,

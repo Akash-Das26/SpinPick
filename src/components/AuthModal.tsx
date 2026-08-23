@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { UserProfile } from '../types';
 import { authService } from '../utils/auth';
 import { sound } from '../utils/audio';
+import { useModalA11y } from '../hooks/useModalA11y';
 import {
   X,
   Lock,
@@ -34,6 +35,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  const modalRef = useModalA11y({ isOpen, onClose });
 
   if (!isOpen) return null;
 
@@ -86,6 +89,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     >
       <div
         id="auth-modal-content"
+        ref={modalRef as React.RefObject<HTMLDivElement>}
         className="relative w-full max-w-md overflow-hidden rounded-2xl bg-[#0a0a14]/95 border border-white/10 shadow-[0_0_70px_rgba(0,0,0,0.9)] backdrop-blur-2xl p-6 sm:p-7 space-y-5 animate-scale-up"
         onClick={(e) => e.stopPropagation()}
       >
@@ -102,7 +106,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <p className="text-xs text-slate-400">
                 {mode === 'login'
                   ? 'Access your saved wheels and custom presets'
-                  : 'Save, organize, and sync your wheels'}
+                  : 'Create an account to save and organize your wheels'}
               </p>
             </div>
           </div>

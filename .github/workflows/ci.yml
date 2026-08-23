@@ -64,7 +64,7 @@ jobs:
           echo "| Lint (oxlint) | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
           echo "| Type check (tsc) | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
           echo "| Playwright cache | ${{ steps.playwright-cache.outputs.cache-hit == 'true' && '✅ Cache hit' || '📥 Cache miss — installed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Unit tests (145) | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+          echo "| Unit tests (31) | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
           echo "| Production build | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**All checks passed!** 🎉" >> $GITHUB_STEP_SUMMARY
@@ -237,15 +237,9 @@ jobs:
 
       # server/proxy.mjs is zero-dependency (Node built-ins only), so no npm
       # install is needed — the smoke script starts its own isolated proxy.
-      # Proxy behavior is regression-tested in two places:
-      #   1. Unit: the lint-and-test job's `npm run test:unit` step regression-tests
-      #      proxy security — 36 mocked-handler tests in proxy.test.mjs (origin
-      #      allow-list, token gate, rate limit, WWW-Authenticate: Bearer, health/
-      #      OPTIONS exemptions) + 14 HTTP-level tests in proxy.http.test.mjs (real
-      #      server on an ephemeral port, real fetch) + the proxy-routing suite in
-      #      aiService.proxy.test.mjs (fallback).
-      #   2. Integration: this matrix exercises the live gates end-to-end with curl
-      #      (health 200, preflight 204, evil origin 403, token 401s, 429 rate limit).
+      # Proxy behavior is regression-tested here via an integration matrix that
+      # exercises the live gates end-to-end with curl
+      # (health 200, preflight 204, evil origin 403, token 401s, 429 rate limit).
       - name: Proxy security-matrix smoke test
         run: bash scripts/proxy-smoke.sh
 

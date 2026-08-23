@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import { WheelItem, WheelTheme, PointerPosition, WheelConfig } from '../types';
 import { sound } from '../utils/audio';
+import { secureRandomInt } from '../utils/random';
 
 interface SpinWheelProps {
   items: WheelItem[];
@@ -33,7 +34,6 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({
 
   // Wheel state refs to avoid closure re-renders in animation loop
   const rotationRef = useRef<number>(0); // Current rotation in radians
-  const velocityRef = useRef<number>(0); // Current angular velocity
   const isAnimatingRef = useRef<boolean>(false);
   const animFrameIdRef = useRef<number | null>(null);
   const targetRotationRef = useRef<number>(0);
@@ -43,16 +43,20 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({
   const lastSectorIdxRef = useRef<number>(-1);
   const needleDeflectionRef = useRef<number>(0);
 
-  // Preload segment images
+  // Ref to latest drawing function — avoids self-reference and stale closures
+  const drawCanvasRef = useRef<() => void>(() => {});
+
+  // Preload segment images and trigger redraw via ref (no stale closure)
   useEffect(() => {
+    const loaded = imageCacheRef.current;
     activeItems.forEach((item) => {
-      if (item.imageUrl && !imageCacheRef.current.has(item.imageUrl)) {
+      if (item.imageUrl && !loaded.has(item.imageUrl)) {
         const img = new Image();
         img.crossOrigin = 'anonymous';
         img.src = item.imageUrl;
         img.onload = () => {
-          imageCacheRef.current.set(item.imageUrl!, img);
-          drawWheel();
+          loaded.set(item.imageUrl!, img);
+          drawCanvasRef.current();
         };
       }
     });
@@ -108,7 +112,7 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({
     [getSectorAngles, getPointerAngle, config.pointerPosition]
   );
 
-  // Draw the entire wheel on canvas
+  // Draw the entire wheel on canvas (stable callback via ref, no self-reference)
   const drawWheel = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -403,6 +407,11 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({
     ctx.restore();
   }, [activeItems, theme, config, isSpinning, getSectorAngles, getPointerAngle]);
 
+  // Keep drawCanvasRef in sync for image preload & animation loop
+  useEffect(() => {
+    drawCanvasRef.current = () => drawWheel();
+  }, [drawWheel]);
+
   // Resize canvas according to container and DPR
   const handleResize = useCallback(() => {
     const canvas = canvasRef.current;
@@ -452,8 +461,8 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({
     const duration = (config.spinDuration || 5) * 1000;
 
     // Pick random target angle with extra full rotations (e.g. 6 to 12 rotations)
-    const baseRotations = 6 + Math.random() * 6 * speed;
-    const randomAngle = Math.random() * Math.PI * 2;
+    const baseRotations = 6 + (secureRandomInt(100000) / 100000) * 6 * speed;
+    const randomAngle = (secureRandomInt(100000) / 100000) * Math.PI * 2;
     const totalDelta = baseRotations * Math.PI * 2 + randomAngle;
 
     startRotationRef.current = rotationRef.current % (Math.PI * 2);
@@ -503,14 +512,14 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({
       // Spring-decay needle deflection back to zero
       needleDeflectionRef.current *= 0.84;
 
-      drawWheel();
+      drawCanvasRef.current();
 
       if (progress < 1) {
         animFrameIdRef.current = requestAnimationFrame(animate);
       } else {
         isAnimatingRef.current = false;
         needleDeflectionRef.current = 0;
-        drawWheel();
+        drawCanvasRef.current();
 
         // Determine final winner
         const winner = getWinnerAtRotation(rotationRef.current);
@@ -531,7 +540,6 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({
     getSectorAngles,
     getPointerAngle,
     getWinnerAtRotation,
-    drawWheel,
   ]);
 
   // Clean up animation on unmount

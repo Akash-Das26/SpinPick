@@ -21,11 +21,6 @@ describe('Audio utils', () => {
       type: '',
     };
 
-    const mockGain = {
-      connect: vi.fn(),
-      gain: { setValueAtTime: vi.fn(), exponentialRampToValueAtTime: vi.fn(), linearRampToValueAtTime: vi.fn() },
-    };
-
     mockCtx = {
       createOscillator: vi.fn(() => ({ ...mockOscillator, connect: vi.fn(), start: vi.fn(), stop: vi.fn(), frequency: { setValueAtTime: vi.fn(), exponentialRampToValueAtTime: vi.fn(), linearRampToValueAtTime: vi.fn() }, type: '' })),
       createGain: vi.fn(() => ({ connect: vi.fn(), gain: { setValueAtTime: vi.fn(), exponentialRampToValueAtTime: vi.fn(), linearRampToValueAtTime: vi.fn() } })),

@@ -11,6 +11,8 @@ import {
   Lightbulb,
 } from 'lucide-react';
 import { sound } from '../utils/audio';
+import { secureRandomInt } from '../utils/random';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface SmartWeightingModalProps {
   isOpen: boolean;
@@ -65,21 +67,20 @@ function computeOfflineWeights(
     if (activeCategory) {
       const text = (item.text + ' ' + (item.note || '')).toLowerCase();
       const matchCount = activeCategory.keywords.filter((kw) => text.includes(kw)).length;
-      const promptMatchCount = activeCategory.keywords.filter((kw) => q.includes(kw)).length;
 
       if (matchCount > 0) {
         weight = Math.min(10, 3 + matchCount * 2);
         reason = `Strong match for "${activeCategory.name}" criteria`;
       } else if (activeCategory.name === 'rare') {
-        weight = Math.max(1, Math.floor(Math.random() * 2) + 1);
+        weight = Math.max(1, secureRandomInt(2) + 1);
         reason = 'Making this choice rarer';
       } else {
-        weight = Math.max(1, Math.floor(Math.random() * 3) + 1);
+        weight = Math.max(1, secureRandomInt(3) + 1);
         reason = 'No direct keyword match — balanced weight';
       }
     } else {
       // No category matched — give varied weights for interesting distribution
-      weight = Math.max(1, Math.min(5, Math.floor(Math.random() * 4) + 1));
+      weight = Math.max(1, Math.min(5, secureRandomInt(4) + 1));
       reason = 'General weighting — no specific criteria detected';
     }
 
@@ -166,6 +167,8 @@ export const SmartWeightingModal: React.FC<SmartWeightingModalProps> = ({
   const [previewWeights, setPreviewWeights] = useState<WeightResult[] | null>(null);
   const [usedGemini, setUsedGemini] = useState(false);
 
+  const modalRef = useModalA11y({ isOpen, onClose });
+
   if (!isOpen) return null;
 
   const activeItems = items.filter((i) => i.enabled);
@@ -236,6 +239,7 @@ export const SmartWeightingModal: React.FC<SmartWeightingModalProps> = ({
     >
       <div
         id="smart-weighting-modal-content"
+        ref={modalRef as React.RefObject<HTMLDivElement>}
         className="w-full max-w-xl max-h-[90vh] flex flex-col rounded-2xl bg-[#0b0c16]/95 border border-indigo-500/30 p-6 shadow-[0_0_80px_rgba(99,102,241,0.25)] backdrop-blur-2xl space-y-4 animate-scale-up overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >

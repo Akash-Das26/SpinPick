@@ -2,7 +2,6 @@ import React from 'react';
 import { WheelItem, WheelTheme, WheelConfig } from '../types';
 import { SpinWheel } from './SpinWheel';
 import { Minimize2, RotateCw, Volume2, VolumeX, Sparkles } from 'lucide-react';
-import { sound } from '../utils/audio';
 
 interface FullscreenStageProps {
   items: WheelItem[];

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { Sparkles, X, Dices, Coins } from 'lucide-react';
+import { X, Coins } from 'lucide-react';
 import { sound } from '../utils/audio';
+import { secureRandomInt } from '../utils/random';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface QuickFlipModalProps {
   isOpen: boolean;
@@ -12,6 +14,8 @@ export const QuickFlipModal: React.FC<QuickFlipModalProps> = ({ isOpen, onClose 
   const [isFlipping, setIsFlipping] = useState(false);
   const [result, setResult] = useState<string | null>(null);
 
+  const modalRef = useModalA11y({ isOpen, onClose });
+
   if (!isOpen) return null;
 
   const handleFlip = () => {
@@ -22,15 +26,15 @@ export const QuickFlipModal: React.FC<QuickFlipModalProps> = ({ isOpen, onClose 
 
     setTimeout(() => {
       if (activeType === 'coin') {
-        const coin = Math.random() < 0.5 ? '🪙 HEADS' : '🪙 TAILS';
+        const coin = secureRandomInt(2) === 0 ? '🪙 HEADS' : '🪙 TAILS';
         setResult(coin);
       } else if (activeType === 'dice') {
-        const diceVal = Math.floor(Math.random() * 6) + 1;
+        const diceVal = secureRandomInt(6) + 1;
         const diceEmojis = ['⚀ 1', '⚁ 2', '⚂ 3', '⚃ 4', '⚄ 5', '⚅ 6'];
         setResult(`🎲 Rolled a ${diceEmojis[diceVal - 1]}`);
       } else {
         const answers = ['✨ YES!', '🚫 NO', '🔮 MAYBE', '⚡ DO IT NOW', '🛑 WAIT'];
-        const ans = answers[Math.floor(Math.random() * answers.length)];
+        const ans = answers[secureRandomInt(answers.length)];
         setResult(ans);
       }
       setIsFlipping(false);
@@ -46,6 +50,7 @@ export const QuickFlipModal: React.FC<QuickFlipModalProps> = ({ isOpen, onClose 
     >
       <div
         id="quick-flip-content"
+        ref={modalRef as React.RefObject<HTMLDivElement>}
         className="relative w-full max-w-sm rounded-2xl bg-[#080810]/95 border border-white/10 p-6 text-center space-y-4 shadow-[0_0_80px_rgba(0,0,0,0.8)] backdrop-blur-2xl animate-scale-up"
         onClick={(e) => e.stopPropagation()}
       >

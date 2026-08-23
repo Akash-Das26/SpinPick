@@ -1,6 +1,7 @@
-import React, { useRef } from 'react';
+import React, { useCallback } from 'react';
 import { WheelItem, WheelConfig } from '../types';
 import { Download, Image, FileText, FileJson, X } from 'lucide-react';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface ExporterModalProps {
   isOpen: boolean;
@@ -9,17 +10,28 @@ interface ExporterModalProps {
   config: WheelConfig;
 }
 
+const downloadFile = (content: string, filename: string, mimeType: string) => {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
 export const ExporterModal: React.FC<ExporterModalProps> = ({
   isOpen,
   onClose,
   items,
   config,
 }) => {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const modalRef = useModalA11y({ isOpen, onClose });
 
-  if (!isOpen) return null;
-
-  const handleExportCSV = () => {
+  const handleExportCSV = useCallback(() => {
+    const ts = Date.now();
     const rows = [
       ['Label', 'Color', 'Weight', 'Enabled', 'Note'],
       ...items.map((item) => [
@@ -31,22 +43,22 @@ export const ExporterModal: React.FC<ExporterModalProps> = ({
       ]),
     ];
     const csv = rows.map((r) => r.join(',')).join('\n');
-    downloadFile(csv, `spinpick_wheel_${Date.now()}.csv`, 'text/csv');
-  };
+    downloadFile(csv, `spinpick_wheel_${ts}.csv`, 'text/csv');
+  }, [items]);
 
-  const handleExportJSON = () => {
+  const handleExportJSON = useCallback(() => {
+    const ts = Date.now();
     const payload = {
       version: 1,
       title: config.title,
       items,
-      exportedAt: Date.now(),
+      exportedAt: ts,
     };
     const json = JSON.stringify(payload, null, 2);
-    downloadFile(json, `spinpick_wheel_${Date.now()}.json`, 'application/json');
-  };
+    downloadFile(json, `spinpick_wheel_${ts}.json`, 'application/json');
+  }, [items, config]);
 
-  const handleExportPNG = () => {
-    // Capture the spin wheel canvas if available
+  const handleExportPNG = useCallback(() => {
     const canvas = document.getElementById('spin-wheel-canvas') as HTMLCanvasElement | null;
     if (canvas) {
       const link = document.createElement('a');
@@ -54,7 +66,6 @@ export const ExporterModal: React.FC<ExporterModalProps> = ({
       link.href = canvas.toDataURL('image/png');
       link.click();
     } else {
-      // Fallback: create a simple visual export
       const offscreen = document.createElement('canvas');
       offscreen.width = 600;
       offscreen.height = 600;
@@ -67,11 +78,9 @@ export const ExporterModal: React.FC<ExporterModalProps> = ({
       const activeItems = items.filter((i) => i.enabled);
       const totalWeight = activeItems.reduce((sum, i) => sum + i.weight, 0);
 
-      // Draw background
       ctx.fillStyle = '#0a0a14';
       ctx.fillRect(0, 0, 600, 600);
 
-      // Draw slices
       let startAngle = -Math.PI / 2;
       activeItems.forEach((item) => {
         const sliceAngle = (item.weight / totalWeight) * 2 * Math.PI;
@@ -85,7 +94,6 @@ export const ExporterModal: React.FC<ExporterModalProps> = ({
         ctx.lineWidth = 1;
         ctx.stroke();
 
-        // Draw label
         const midAngle = startAngle + sliceAngle / 2;
         const labelX = cx + Math.cos(midAngle) * radius * 0.6;
         const labelY = cy + Math.sin(midAngle) * radius * 0.6;
@@ -101,7 +109,6 @@ export const ExporterModal: React.FC<ExporterModalProps> = ({
         startAngle += sliceAngle;
       });
 
-      // Center hub
       ctx.beginPath();
       ctx.arc(cx, cy, 40, 0, Math.PI * 2);
       ctx.fillStyle = '#1a1a2e';
@@ -110,7 +117,6 @@ export const ExporterModal: React.FC<ExporterModalProps> = ({
       ctx.lineWidth = 3;
       ctx.stroke();
 
-      // Title
       ctx.fillStyle = '#fff';
       ctx.font = 'bold 16px sans-serif';
       ctx.textAlign = 'center';
@@ -121,19 +127,9 @@ export const ExporterModal: React.FC<ExporterModalProps> = ({
       link.href = offscreen.toDataURL('image/png');
       link.click();
     }
-  };
+  }, [items, config]);
 
-  const downloadFile = (content: string, filename: string, mimeType: string) => {
-    const blob = new Blob([content], { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
+  if (!isOpen) return null;
 
   const activeItems = items.filter((i) => i.enabled);
   const totalWeight = activeItems.reduce((sum, i) => sum + i.weight, 0);
@@ -144,6 +140,7 @@ export const ExporterModal: React.FC<ExporterModalProps> = ({
       onClick={onClose}
     >
       <div
+        ref={modalRef as React.RefObject<HTMLDivElement>}
         className="w-full max-w-md rounded-2xl bg-[#080810]/95 border border-white/10 p-6 shadow-[0_0_80px_rgba(0,0,0,0.8)] backdrop-blur-2xl space-y-5 animate-scale-up"
         onClick={(e) => e.stopPropagation()}
       >
@@ -157,7 +154,6 @@ export const ExporterModal: React.FC<ExporterModalProps> = ({
           </button>
         </div>
 
-        {/* Stats */}
         <div className="flex items-center gap-4 text-xs text-slate-400">
           <span>{activeItems.length} active slices</span>
           <span>•</span>
@@ -166,7 +162,6 @@ export const ExporterModal: React.FC<ExporterModalProps> = ({
           <span>{config.title || 'Untitled'}</span>
         </div>
 
-        {/* Export Options */}
         <div className="space-y-3">
           <button
             onClick={handleExportPNG}

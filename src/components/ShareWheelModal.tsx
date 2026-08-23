@@ -1,7 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { WheelItem, WheelConfig, UserProfile } from '../types';
 import { encodeWheelToUrl, getSocialShareLinks } from '../utils/share';
 import { sound } from '../utils/audio';
+import QRCode from 'qrcode';
+import { useModalA11y } from '../hooks/useModalA11y';
 import {
   Share2,
   Copy,
@@ -36,6 +38,8 @@ export const ShareWheelModal: React.FC<ShareWheelModalProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const [showQr, setShowQr] = useState(false);
+  const modalRef = useModalA11y({ isOpen, onClose });
+  const qrCanvasRef = useRef<HTMLCanvasElement>(null);
 
   const shareUrl = useMemo(() => {
     if (!isOpen) return '';
@@ -46,6 +50,17 @@ export const ShareWheelModal: React.FC<ShareWheelModalProps> = ({
     return getSocialShareLinks(shareUrl, title || 'Spin Wheel');
   }, [shareUrl, title]);
 
+  // Local QR code generation (no third-party API — privacy safe)
+  useEffect(() => {
+    if (!showQr || !shareUrl || !qrCanvasRef.current) return;
+    QRCode.toCanvas(qrCanvasRef.current, shareUrl, {
+      width: 240,
+      margin: 2,
+      color: { dark: '#ffffff', light: '#080810' },
+      errorCorrectionLevel: 'M',
+    }).catch(() => {});
+  }, [showQr, shareUrl]);
+
   if (!isOpen) return null;
 
   const handleCopyLink = async () => {
@@ -55,16 +70,10 @@ export const ShareWheelModal: React.FC<ShareWheelModalProps> = ({
       sound.playPop(true);
       setTimeout(() => setCopied(false), 2500);
     } catch {
-      // Fallback
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     }
   };
-
-  // Generate simple QR code URL using public qr service
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(
-    shareUrl
-  )}&bgcolor=080810&color=ffffff&margin=10`;
 
   return (
     <div
@@ -74,6 +83,7 @@ export const ShareWheelModal: React.FC<ShareWheelModalProps> = ({
     >
       <div
         id="share-wheel-modal-content"
+        ref={modalRef as React.RefObject<HTMLDivElement>}
         className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-[#080812]/95 border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.9)] backdrop-blur-2xl p-6 sm:p-7 space-y-5 animate-scale-up"
         onClick={(e) => e.stopPropagation()}
       >
@@ -170,10 +180,10 @@ export const ShareWheelModal: React.FC<ShareWheelModalProps> = ({
 
           {showQr && (
             <div className="p-4 bg-black/60 rounded-xl border border-white/10 flex flex-col items-center justify-center space-y-2 animate-fade-in">
-              <img
-                src={qrCodeUrl}
-                alt="QR Code"
-                className="w-40 h-40 rounded-lg border border-white/20 shadow-xl"
+              <canvas
+                ref={qrCanvasRef}
+                className="rounded-lg border border-white/20 shadow-xl"
+                aria-label="QR code for sharing this wheel"
               />
               <p className="text-[11px] text-slate-400">Scan with phone camera to spin immediately</p>
             </div>

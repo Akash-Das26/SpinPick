@@ -1,15 +1,14 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useLayoutEffect, useRef } from 'react';
 import {
   WheelItem,
   WheelConfig,
-  WheelTheme,
   SpinHistoryItem,
   SavedWheel,
   SpinMode,
   UserProfile,
 } from './types';
 import { PRESET_WHEELS } from './utils/presets';
-import { getTheme, WHEEL_THEMES } from './utils/themes';
+import { getTheme } from './utils/themes';
 import { sound } from './utils/audio';
 import { authService } from './utils/auth';
 import { decodeWheelFromUrl } from './utils/share';
@@ -32,7 +31,6 @@ import { OnboardingTour } from './components/OnboardingTour';
 const HowItWorks = React.lazy(() => import('./components/HowItWorks').then(m => ({ default: m.HowItWorks })));
 
 import {
-  Play,
   RotateCw,
   Maximize2,
   Volume2,
@@ -42,14 +40,11 @@ import {
   Bookmark,
   Users,
   Flame,
-  HelpCircle,
   Dices,
   Sparkles,
   Download,
   Trophy,
-  ListOrdered,
   Share2,
-  User,
   LogIn,
   LogOut,
   CheckCircle,
@@ -65,7 +60,11 @@ export default function App() {
   // Initial default wheel
   const initialPreset = PRESET_WHEELS[0];
 
+  // Decode shared wheel from URL once (used by lazy initializers below)
+  const sharedData = decodeWheelFromUrl();
+
   const [items, setItems] = useState<WheelItem[]>(() => {
+    if (sharedData && sharedData.items.length > 0) return sharedData.items;
     try {
       const saved = localStorage.getItem(STORAGE_KEY_CURRENT_WHEEL);
       if (saved) {
@@ -79,6 +78,7 @@ export default function App() {
   });
 
   const [themeId, setThemeId] = useState<string>(() => {
+    if (sharedData?.themeId) return sharedData.themeId;
     try {
       const saved = localStorage.getItem(STORAGE_KEY_CURRENT_WHEEL);
       if (saved) {
@@ -90,6 +90,27 @@ export default function App() {
   });
 
   const [config, setConfig] = useState<WheelConfig>(() => {
+    // Fold shared URL decode: override title & fontFamily if present
+    if (sharedData) {
+      return {
+        spinDuration: initialPreset.config.spinDuration ?? 5,
+        spinSpeed: initialPreset.config.spinSpeed || 'normal',
+        pointerPosition: initialPreset.config.pointerPosition || 'top',
+        fontFamily: sharedData.fontFamily || initialPreset.config.fontFamily || 'Outfit',
+        fontSizeMultiplier: initialPreset.config.fontSizeMultiplier ?? 1.0,
+        textTransform: initialPreset.config.textTransform || 'none',
+        enableSound: initialPreset.config.enableSound ?? true,
+        soundVolume: initialPreset.config.soundVolume ?? 0.7,
+        enableConfetti: initialPreset.config.enableConfetti ?? true,
+        confettiIntensity: initialPreset.config.confettiIntensity || 'normal',
+        confettiDuration: initialPreset.config.confettiDuration ?? 3,
+        mysteryMode: initialPreset.config.mysteryMode ?? false,
+        eliminationMode: initialPreset.config.eliminationMode ?? false,
+        winningAnimation: initialPreset.config.winningAnimation || 'confetti',
+        title: sharedData.title || initialPreset.config.title || 'SpinPick',
+        centerText: initialPreset.config.centerText,
+      };
+    }
     try {
       const saved = localStorage.getItem(STORAGE_KEY_CURRENT_WHEEL);
       if (saved) {
@@ -159,7 +180,13 @@ export default function App() {
     try { return !localStorage.getItem('spinpick_tour_seen'); } catch { return true; }
   });
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [sharedBannerMessage, setSharedBannerMessage] = useState<string | null>(null);
+  const [sharedBannerMessage, setSharedBannerMessage] = useState<string | null>(() => {
+    if (sharedData && sharedData.items.length > 0) {
+      const authorText = sharedData.author ? ` by ${sharedData.author}` : '';
+      return `🎡 Loaded shared wheel: "${sharedData.title}"${authorText}`;
+    }
+    return null;
+  });
 
   // Multi-winner pool state
   const [multiWinners, setMultiWinners] = useState<WheelItem[]>([]);
@@ -185,46 +212,53 @@ export default function App() {
     return [];
   });
 
-  // Auto-detect and import shared wheel from URL query string on startup
+  // Play fanfare for shared URL wheel on mount (banner state initialized above)
   useEffect(() => {
-    const shared = decodeWheelFromUrl();
-    if (shared && shared.items && shared.items.length > 0) {
-      setItems(shared.items);
-      if (shared.themeId) setThemeId(shared.themeId);
-      setConfig((prev) => ({
-        ...prev,
-        title: shared.title,
-        fontFamily: shared.fontFamily || prev.fontFamily,
-      }));
-
-      const authorText = shared.author ? ` by ${shared.author}` : '';
-      setSharedBannerMessage(`🎡 Loaded shared wheel: "${shared.title}"${authorText}`);
+    if (sharedData && sharedData.items.length > 0) {
       sound.playVictoryFanfare();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- one-time mount side-effect
   }, []);
 
-  // Save current wheel to localStorage
+  // Debounced localStorage writers — avoid writing on every keystroke
+  const saveCurrentWheelRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveSavedWheelsRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveHistoryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Save current wheel to localStorage (debounced 400ms)
   useEffect(() => {
-    try {
-      localStorage.setItem(
-        STORAGE_KEY_CURRENT_WHEEL,
-        JSON.stringify({ items, themeId, config })
-      );
-    } catch {}
+    if (saveCurrentWheelRef.current) clearTimeout(saveCurrentWheelRef.current);
+    saveCurrentWheelRef.current = setTimeout(() => {
+      try {
+        localStorage.setItem(
+          STORAGE_KEY_CURRENT_WHEEL,
+          JSON.stringify({ items, themeId, config })
+        );
+      } catch {}
+    }, 400);
+    return () => { if (saveCurrentWheelRef.current) clearTimeout(saveCurrentWheelRef.current); };
   }, [items, themeId, config]);
 
-  // Save custom wheels to localStorage
+  // Save custom wheels to localStorage (debounced 400ms)
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY_SAVED_WHEELS, JSON.stringify(savedWheels));
-    } catch {}
+    if (saveSavedWheelsRef.current) clearTimeout(saveSavedWheelsRef.current);
+    saveSavedWheelsRef.current = setTimeout(() => {
+      try {
+        localStorage.setItem(STORAGE_KEY_SAVED_WHEELS, JSON.stringify(savedWheels));
+      } catch {}
+    }, 400);
+    return () => { if (saveSavedWheelsRef.current) clearTimeout(saveSavedWheelsRef.current); };
   }, [savedWheels]);
 
-  // Save history to localStorage
+  // Save history to localStorage (debounced 400ms)
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(history));
-    } catch {}
+    if (saveHistoryRef.current) clearTimeout(saveHistoryRef.current);
+    saveHistoryRef.current = setTimeout(() => {
+      try {
+        localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(history));
+      } catch {}
+    }, 400);
+    return () => { if (saveHistoryRef.current) clearTimeout(saveHistoryRef.current); };
   }, [history]);
 
   const activeTheme = getTheme(themeId);
@@ -284,36 +318,47 @@ export default function App() {
   }, [isSpinning, isFullscreen]);
 
   // Keyboard shortcut listener
+  // Modal/fullscreen flags are mirrored into a ref (kept fresh in a layout
+  // effect) so the handler always reads up-to-date values at event time —
+  // closures can be stale while a keydown dispatch is still in flight.
+  const hotkeyStateRef = useRef({ anyModalOpen: false, isFullscreen: false });
+  useLayoutEffect(() => {
+    hotkeyStateRef.current.anyModalOpen =
+      showWinnerModal || showAuthModal || showShareModal ||
+      showSavedWheelsModal || showSettingsModal || showHistoryDrawer ||
+      showTeamsModal || showQuickFlipModal || showExporterModal ||
+      showTournamentModal || showOnboarding;
+    hotkeyStateRef.current.isFullscreen = isFullscreen;
+  });
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Don't trigger if user is typing in an input/textarea
       const activeTag = document.activeElement?.tagName.toLowerCase();
       if (activeTag === 'input' || activeTag === 'textarea') return;
 
-      // Don't trigger spin/sound hotkeys when any modal is open
-      const anyModalOpen = showWinnerModal || showAuthModal || showShareModal ||
-        showSavedWheelsModal || showSettingsModal || showHistoryDrawer ||
-        showTeamsModal || showQuickFlipModal || showExporterModal ||
-        showTournamentModal;
+      const { anyModalOpen, isFullscreen: fs } = hotkeyStateRef.current;
 
-      if (e.code === 'Space' && !anyModalOpen) {
+      if (e.code === 'Space') {
+        // Always swallow Space so it can't natively re-activate a focused
+        // button behind an open overlay; only spin when no modal is open.
         e.preventDefault();
-        handleTriggerSpin();
+        if (!anyModalOpen) handleTriggerSpin();
       } else if ((e.key === 'm' || e.key === 'M') && !anyModalOpen) {
         e.preventDefault();
         setConfig((prev) => ({ ...prev, enableSound: !prev.enableSound }));
         sound.playPop(true);
-      } else if (e.key === 'f' || e.key === 'F') {
+      } else if ((e.key === 'f' || e.key === 'F') && !anyModalOpen) {
         e.preventDefault();
         setIsFullscreen((prev) => !prev);
-      } else if (e.key === 'Escape') {
-        if (isFullscreen) setIsFullscreen(false);
+      } else if (e.key === 'Escape' && !anyModalOpen && fs) {
+        setIsFullscreen(false);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleTriggerSpin, isFullscreen, showWinnerModal, showAuthModal, showShareModal, showSavedWheelsModal, showSettingsModal, showHistoryDrawer, showTeamsModal, showQuickFlipModal, showExporterModal, showTournamentModal]);
+  }, [handleTriggerSpin]);
 
   // Item management handlers
   const handleAddItem = (item: Omit<WheelItem, 'id'>) => {

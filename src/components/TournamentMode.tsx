@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { WheelItem } from '../types';
 import { Trophy, RotateCw, ChevronRight } from 'lucide-react';
 import { sound } from '../utils/audio';
 import { secureShuffle } from '../utils/random';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface TournamentModeProps {
   items: WheelItem[];
@@ -81,8 +82,14 @@ export const TournamentMode: React.FC<TournamentModeProps> = ({
 
   // Rebuild the bracket from current items every time the modal opens,
   // so edits made since the last tournament are always reflected.
+  const prevOpenRef = useRef(isOpen);
+  const prevItemsRef = useRef(items);
   useEffect(() => {
-    if (isOpen) {
+    const justOpened = isOpen && !prevOpenRef.current;
+    const itemsChanged = items !== prevItemsRef.current && isOpen;
+    prevOpenRef.current = isOpen;
+    prevItemsRef.current = items;
+    if (justOpened || itemsChanged) {
       setBracket(buildBracket(items));
       setCurrentRoundIdx(0);
       setCurrentMatchIdx(0);
@@ -156,6 +163,8 @@ export const TournamentMode: React.FC<TournamentModeProps> = ({
     setChampion(null);
   };
 
+  const modalRef = useModalA11y({ isOpen, onClose });
+
   if (!isOpen) return null;
 
   return (
@@ -164,6 +173,7 @@ export const TournamentMode: React.FC<TournamentModeProps> = ({
       onClick={onClose}
     >
       <div
+        ref={modalRef as React.RefObject<HTMLDivElement>}
         className="w-full max-w-2xl max-h-[90vh] rounded-2xl bg-[#080810]/95 border border-white/10 p-6 shadow-[0_0_80px_rgba(0,0,0,0.8)] backdrop-blur-2xl space-y-5 animate-scale-up overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >

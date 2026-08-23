@@ -3,6 +3,7 @@ import { SavedWheel, WheelItem, WheelConfig } from '../types';
 import { PRESET_WHEELS } from '../utils/presets';
 import { Bookmark, Sparkles, FolderDown, Upload, Trash2, Plus, Check, X } from 'lucide-react';
 import { sound } from '../utils/audio';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface SavedWheelsModalProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ export const SavedWheelsModal: React.FC<SavedWheelsModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'presets' | 'saved' | 'save_current'>('presets');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const modalRef = useModalA11y({ isOpen, onClose });
   const [newTitle, setNewTitle] = useState('');
   const [newDesc, setNewDesc] = useState('');
 
@@ -107,6 +109,7 @@ export const SavedWheelsModal: React.FC<SavedWheelsModalProps> = ({
     >
       <div
         id="saved-wheels-content"
+        ref={modalRef as React.RefObject<HTMLDivElement>}
         className="relative w-full max-w-3xl overflow-hidden rounded-2xl bg-[#080810]/95 border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.8)] backdrop-blur-2xl p-6 space-y-4 max-h-[85vh] flex flex-col transform animate-scale-up"
         onClick={(e) => e.stopPropagation()}
       >

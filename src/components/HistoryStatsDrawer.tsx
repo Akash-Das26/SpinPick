@@ -2,6 +2,7 @@ import React from 'react';
 import { SpinHistoryItem } from '../types';
 import { History, BarChart3, Trash2, Download, X, Clock, Trophy } from 'lucide-react';
 import { sound } from '../utils/audio';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface HistoryStatsDrawerProps {
   history: SpinHistoryItem[];
@@ -16,6 +17,8 @@ export const HistoryStatsDrawer: React.FC<HistoryStatsDrawerProps> = ({
   onClose,
   onClearHistory,
 }) => {
+  const modalRef = useModalA11y({ isOpen, onClose });
+
   if (!isOpen) return null;
 
   // Calculate item frequencies
@@ -69,6 +72,7 @@ export const HistoryStatsDrawer: React.FC<HistoryStatsDrawerProps> = ({
     >
       <div
         id="history-drawer-content"
+        ref={modalRef as React.RefObject<HTMLDivElement>}
         className="w-full max-w-md bg-[#080810]/95 border-l border-white/10 h-full p-5 flex flex-col justify-between shadow-2xl backdrop-blur-2xl overflow-hidden animate-slide-left"
         onClick={(e) => e.stopPropagation()}
       >

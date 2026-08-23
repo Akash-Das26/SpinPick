@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { sound } from '../utils/audio';
 import { fireWinningConfetti } from '../utils/confetti';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface WinnerModalProps {
   winner: WheelItem | null;
@@ -49,6 +50,7 @@ export const WinnerModal: React.FC<WinnerModalProps> = ({
   confettiDuration = 3,
 }) => {
   const [copied, setCopied] = useState(false);
+  const modalRef = useModalA11y({ isOpen, onClose });
 
   const isElimination = isEliminationMode || mode === 'elimination';
   const isChampion = isElimination && totalActiveCount <= 1;
@@ -65,19 +67,6 @@ export const WinnerModal: React.FC<WinnerModalProps> = ({
       }
     }
   }, [isOpen, winner, isElimination, isChampion, enableConfetti, confettiIntensity, confettiDuration]);
-
-  // Close the modal with Escape, as promised by the close button tooltip
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.stopPropagation();
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown, true);
-    return () => window.removeEventListener('keydown', handleKeyDown, true);
-  }, [isOpen, onClose]);
 
   if (!isOpen || !winner) return null;
 
@@ -129,6 +118,7 @@ export const WinnerModal: React.FC<WinnerModalProps> = ({
     >
       <div
         id="winner-modal-content"
+        ref={modalRef as React.RefObject<HTMLDivElement>}
         className={`relative w-full max-w-md overflow-hidden rounded-2xl border shadow-[0_0_90px_rgba(0,0,0,0.9)] backdrop-blur-2xl p-6 text-center transform transition-all animate-scale-up ${
           isChampion
             ? 'bg-[#0f0e06]/95 border-amber-500/40 shadow-[0_0_80px_rgba(245,158,11,0.25)]'
