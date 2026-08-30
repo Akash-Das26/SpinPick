@@ -10,7 +10,9 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+storybook-static
 *.local
+*.tsbuildinfo
 .env
 .env.local
 .env.development

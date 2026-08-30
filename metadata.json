@@ -1,6 +1,0 @@
-{
-  "name": "SpinPick - Random Picker & Decision Wheel",
-  "description": "An interactive, physics-driven decision wheel and random picker with segment image uploads, rich color palettes, custom typography, user authentication, shareable links, and battle royale elimination.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_AI_GENERATION", "MAJOR_CAPABILITY_SHARING"]
-}
