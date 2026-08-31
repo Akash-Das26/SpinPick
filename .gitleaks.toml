@@ -31,4 +31,8 @@ regexes = [
   # "sk-or-v1-..." (literal dots) is never a valid key. Allowed defensively so
   # future gitleaks rule updates can't false-positive on it.
   '''sk-or-v1-\.\.\.''',
+  # Historical CI fixtures retained in git history; exact values only.
+  '''super-secret-token-42''',
+  '''change-me-to-a-long-random-string''',
+  '''https://your-dsn-key@your-org\.ingest\.sentry\.io/project-id''',
 ]
